@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Besos por el Mundo</string>
+    <string name="default_web_client_id">AIzaSyCLHKZmeUUahOD9pCG9HGRed9zxwP5vHb0</string>
+    <string name="image_description">Descripción de la imagen</string>
+    <string name="logo_desc">Logo de la aplicación</string>
+</resources>

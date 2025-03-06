@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="15dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@android:color/white"
+    android:layout_margin="16dp"> <!-- Reducimos el margen -->
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"> <!-- Ajustamos el padding -->
+
+        <!-- Espacio para el MapView -->
+        <org.osmdroid.views.MapView
+            android:id="@+id/selectLocationMapview"
+            android:layout_width="match_parent"
+            android:layout_height="450dp"
+            android:layout_marginTop="12dp" />
+
+        <!-- Visualización de las coordenadas actuales -->
+        <TextView
+            android:id="@+id/currentCoordinates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Latitud: --\nLongitud: --"
+            android:layout_marginTop="8dp"
+            android:textColor="#5a5a5a"
+            android:textSize="16sp"
+            android:gravity="center" />
+
+        <!-- Botón para confirmar la selección -->
+        <Button
+            android:id="@+id/selectLocationButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Seleccionar lugar"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="16dp"
+        android:background="@drawable/button_background" />
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,424 @@
+package com.besos.bpm
+
+import android.app.DatePickerDialog
+import android.app.ProgressDialog
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import android.net.Uri
+import android.os.Bundle
+import android.util.Log
+import android.view.*
+import android.widget.*
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
+import androidx.activity.result.contract.ActivityResultContracts
+import com.bumptech.glide.Glide
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.database.*
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import org.osmdroid.config.Configuration
+import org.osmdroid.events.DelayedMapListener
+import org.osmdroid.events.ZoomEvent
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.BoundingBox
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.MapView
+import org.osmdroid.views.overlay.Marker
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
+import android.text.InputType
+
+class MapFragment : Fragment(R.layout.map_fragment) {
+
+    // Vistas del layout
+    private lateinit var mapView: MapView
+    private lateinit var createMarkerButton: FloatingActionButton
+
+    // Firebase
+    private lateinit var databaseReference: DatabaseReference
+    private lateinit var storageReference: StorageReference
+
+    // Lista de marcadores para el mapa
+    private val markerList = mutableListOf<Marker>()
+
+    // Variables para manejo de imágenes y diálogos
+    private var selectedImageUri: Uri? = null
+    private var currentCreateMarkerDialogView: View? = null
+    private var createMarkerDialog: AlertDialog? = null
+    private var selectLocationDialog: AlertDialog? = null
+    private lateinit var progressDialog: ProgressDialog
+
+    // Launcher para seleccionar imágenes
+    private val selectImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            selectedImageUri = uri
+            currentCreateMarkerDialogView?.findViewById<ImageView>(R.id.imagePreview)?.let { imageView ->
+                Glide.with(this).load(uri).into(imageView)
+            }
+        } else {
+            Toast.makeText(context, "No se seleccionó ninguna imagen", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Inicializar las vistas del fragmento
+        mapView = view.findViewById(R.id.mapview)
+        createMarkerButton = view.findViewById(R.id.createMarkerButton)
+
+        // Configurar OSMDroid
+        context?.let { ctx ->
+            Configuration.getInstance().apply {
+                userAgentValue = "com.besos.bpm/1.0"
+                osmdroidBasePath = File(ctx.filesDir, "osmdroid")
+                osmdroidTileCache = File(ctx.externalCacheDir, "tiles")
+            }
+        }
+
+        // Configuración del MapView
+        mapView.setTileSource(TileSourceFactory.MAPNIK)
+        mapView.setMultiTouchControls(true)
+        mapView.setTilesScaledToDpi(false)
+        configureMapLimits()
+
+        // Centrar el mapa en Madrid por defecto
+        val madridGeoPoint = GeoPoint(40.4168, -3.7038)
+        mapView.controller.setCenter(madridGeoPoint)
+        mapView.controller.setZoom(14.0)
+
+        // Inicializar Firebase
+        databaseReference = FirebaseDatabase.getInstance().reference.child("markers")
+        storageReference = FirebaseStorage.getInstance().reference.child("images/")
+
+        // Cargar los marcadores desde Firebase
+        loadMarkersFromDatabase()
+
+        // Actualizar los marcadores al cambiar el zoom del mapa (con un delay de 1s)
+        mapView.addMapListener(DelayedMapListener(object : org.osmdroid.events.MapAdapter() {
+            override fun onZoom(event: ZoomEvent?): Boolean {
+                reloadMarkers()
+                return true
+            }
+        }, 1000))
+
+        // Al pulsar el botón flotante se muestra el diálogo para seleccionar ubicación
+        createMarkerButton.setOnClickListener { showSelectLocationDialog() }
+    }
+
+    // Configuración de límites y niveles de zoom del MapView
+    private fun configureMapLimits() {
+        val boundingBox = BoundingBox(85.0, 180.0, -85.0, -180.0)
+        mapView.setScrollableAreaLimitDouble(boundingBox)
+        mapView.minZoomLevel = 2.0
+        mapView.maxZoomLevel = 20.0
+    }
+
+    // Carga inicial de marcadores desde Firebase
+    private fun loadMarkersFromDatabase() {
+        databaseReference.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for (markerSnapshot in snapshot.children) {
+                    val lat = markerSnapshot.child("latlng/lat").getValue(Double::class.java)
+                    val lng = markerSnapshot.child("latlng/lng").getValue(Double::class.java)
+                    val date = markerSnapshot.child("date").getValue(String::class.java) ?: "Sin fecha"
+                    val description = markerSnapshot.child("description").getValue(String::class.java) ?: "Sin descripción"
+                    val imageUrl = markerSnapshot.child("image").getValue(String::class.java) ?: ""
+                    if (lat != null && lng != null) {
+                        addMarker(lat, lng, date, description, imageUrl)
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FirebaseError", "Error al cargar marcadores: ${error.message}")
+            }
+        })
+    }
+
+    // Recarga los marcadores al actualizar el zoom u otros cambios
+    private fun reloadMarkers() {
+        databaseReference.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                updateMarkers(snapshot)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("Firebase", "Error al actualizar datos: ${error.message}")
+            }
+        })
+    }
+
+    // Actualiza los marcadores existentes o agrega nuevos según lo recibido de Firebase
+    private fun updateMarkers(snapshot: DataSnapshot) {
+        val currentMarkersMap = markerList.associateBy { Pair(it.position.latitude, it.position.longitude) }
+        val newMarkersList = mutableListOf<Marker>()
+
+        for (markerSnapshot in snapshot.children) {
+            val lat = markerSnapshot.child("latlng/lat").getValue(Double::class.java)
+            val lng = markerSnapshot.child("latlng/lng").getValue(Double::class.java)
+            val date = markerSnapshot.child("date").getValue(String::class.java) ?: "Sin fecha"
+            val description = markerSnapshot.child("description").getValue(String::class.java) ?: "Sin descripción"
+            val imageUrl = markerSnapshot.child("image").getValue(String::class.java) ?: ""
+            if (lat != null && lng != null) {
+                val key = Pair(lat, lng)
+                val existingMarker = currentMarkersMap[key]
+                if (existingMarker != null) {
+                    existingMarker.title = description
+                    existingMarker.snippet = date
+                    newMarkersList.add(existingMarker)
+                } else {
+                    addMarker(lat, lng, date, description, imageUrl)
+                }
+            }
+        }
+
+        val markersToRemove = markerList.filter { it !in newMarkersList }
+        markersToRemove.forEach { mapView.overlays.remove(it) }
+
+        markerList.clear()
+        markerList.addAll(newMarkersList)
+        mapView.invalidate()
+    }
+
+    // Agrega un marcador al mapa y a la lista global
+    private fun addMarker(latitude: Double, longitude: Double, date: String, description: String, imageUrl: String) {
+        val geoPoint = GeoPoint(latitude, longitude)
+        val marker = Marker(mapView).apply {
+            position = geoPoint
+            setAnchor(Marker.ANCHOR_TOP, Marker.ANCHOR_CENTER)
+            val originalDrawable = resources.getDrawable(R.drawable.ic_marker_icon, null)
+            val resizedBitmap = Bitmap.createScaledBitmap(
+                (originalDrawable as BitmapDrawable).bitmap,
+                70,
+                90,
+                false
+            )
+            icon = BitmapDrawable(resources, resizedBitmap)
+            setOnMarkerClickListener { _, _ ->
+                showMarkerDialog(date, description, imageUrl)
+                true
+            }
+        }
+
+        mapView.overlays.add(marker)
+        markerList.add(marker)
+        mapView.invalidate()
+    }
+
+    // Muestra el diálogo con la información del marcador
+    private fun showMarkerDialog(date: String, description: String, imageUrl: String) {
+        val builder = AlertDialog.Builder(requireContext(), R.style.PolaroidDialogTheme)
+        val inflater = LayoutInflater.from(context)
+        val dialogView = inflater.inflate(R.layout.dialog_marker_info, null)
+        dialogView.findViewById<TextView>(R.id.markerDescription).text = description
+        dialogView.findViewById<TextView>(R.id.markerDate).text = date
+
+        Glide.with(this)
+            .load(imageUrl)
+            .placeholder(R.drawable.ic_placeholder_image)
+            .error(R.drawable.ic_placeholder_image)
+            .into(dialogView.findViewById(R.id.markerImage))
+
+        val dialog = builder.setView(dialogView).create()
+
+        dialog.show()
+    }
+
+    // Muestra el diálogo para seleccionar la ubicación para crear un nuevo marcador
+    private fun showSelectLocationDialog() {
+        val builder = AlertDialog.Builder(requireContext())
+        val inflater = LayoutInflater.from(context)
+        val dialogView = inflater.inflate(R.layout.dialog_select_location, null)
+        val selectLocationMapView = dialogView.findViewById<MapView>(R.id.selectLocationMapview)
+        val currentCoordinates = dialogView.findViewById<TextView>(R.id.currentCoordinates)
+        val selectLocationButton = dialogView.findViewById<Button>(R.id.selectLocationButton)
+
+        selectLocationMapView.setTileSource(TileSourceFactory.MAPNIK)
+        selectLocationMapView.setMultiTouchControls(true)
+        selectLocationMapView.setTilesScaledToDpi(false)
+
+        val madridGeoPoint = GeoPoint(40.4168, -3.7038)
+        selectLocationMapView.controller.setCenter(madridGeoPoint)
+        selectLocationMapView.controller.setZoom(14.0)
+
+        val centerMarker = Marker(selectLocationMapView).apply {
+            val originalDrawable = resources.getDrawable(R.drawable.ic_marker_icon, null)
+            val resizedBitmap = Bitmap.createScaledBitmap(
+                (originalDrawable as BitmapDrawable).bitmap,
+                70,
+                90,
+                false
+            )
+            icon = BitmapDrawable(resources, resizedBitmap)
+            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+        }
+        selectLocationMapView.overlays.add(centerMarker)
+        centerMarker.position = madridGeoPoint
+
+        selectLocationMapView.addMapListener(object : org.osmdroid.events.MapAdapter() {
+            override fun onScroll(event: org.osmdroid.events.ScrollEvent?): Boolean {
+                updateCenterMarkerAndCoordinates(selectLocationMapView, centerMarker, currentCoordinates)
+                return true
+            }
+            override fun onZoom(event: ZoomEvent?): Boolean {
+                updateCenterMarkerAndCoordinates(selectLocationMapView, centerMarker, currentCoordinates)
+                return true
+            }
+        })
+
+        selectLocationButton.setOnClickListener {
+            val iGeoPoint = selectLocationMapView.mapCenter
+            val centerGeoPoint = GeoPoint(iGeoPoint.latitude, iGeoPoint.longitude)
+            dismissDialog(builder)
+            showCreateMarkerDialog(centerGeoPoint)
+        }
+
+        selectLocationDialog = builder.setView(dialogView).create()
+        selectLocationDialog?.show()
+    }
+
+    // Actualiza la posición del marcador central y muestra las coordenadas actuales
+    private fun updateCenterMarkerAndCoordinates(mapView: MapView, marker: Marker, textView: TextView) {
+        val centerIGeoPoint = mapView.mapCenter
+        val centerGeoPoint = GeoPoint(centerIGeoPoint.latitude, centerIGeoPoint.longitude)
+        marker.position = centerGeoPoint
+        textView.text = "Latitud: ${centerGeoPoint.latitude}, Longitud: ${centerGeoPoint.longitude}"
+    }
+
+    // Cierra un diálogo creado a partir de un AlertDialog.Builder
+    private fun dismissDialog(builder: AlertDialog.Builder) {
+        val dialog = builder.create()
+        if (dialog.isShowing) dialog.dismiss()
+    }
+
+    // Muestra el diálogo para crear un nuevo marcador (con imagen, descripción y fecha)
+    private fun showCreateMarkerDialog(geoPoint: GeoPoint) {
+        val builder = AlertDialog.Builder(requireContext())
+        val inflater = LayoutInflater.from(context)
+        val dialogView = inflater.inflate(R.layout.dialog_create_marker, null)
+        currentCreateMarkerDialogView = dialogView
+
+        val imagePreview = dialogView.findViewById<ImageView>(R.id.imagePreview)
+        val selectImageButton = dialogView.findViewById<Button>(R.id.selectImageButton)
+        val descriptionInput = dialogView.findViewById<EditText>(R.id.descriptionInput)
+        val dateInput = dialogView.findViewById<EditText>(R.id.dateInput)
+        val saveButton = dialogView.findViewById<Button>(R.id.saveMarkerButton)
+
+        descriptionInput.inputType = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
+
+        dateInput.inputType = InputType.TYPE_NULL
+        dateInput.keyListener = null
+
+        selectImageButton.setOnClickListener { selectImageLauncher.launch("image/*") }
+
+        dateInput.setOnClickListener {
+            val calendar = Calendar.getInstance()
+            DatePickerDialog(
+                requireContext(),
+                { _, year, month, day ->
+                    val selectedDate = Calendar.getInstance().apply { set(year, month, day) }
+                    val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    dateInput.setText(dateFormat.format(selectedDate.time))
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            ).show()
+        }
+
+        saveButton.setOnClickListener {
+            val description = descriptionInput.text.toString().trim()
+            val date = dateInput.text.toString().trim()
+
+            if (description.isEmpty()) {
+                Toast.makeText(context, "Por favor, ingresa una descripción", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (date.isEmpty()) {
+                Toast.makeText(context, "Por favor, selecciona una fecha", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (selectedImageUri == null) {
+                Toast.makeText(context, "Por favor, selecciona una imagen", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            uploadImageToFirebaseStorage(selectedImageUri!!, geoPoint.latitude, geoPoint.longitude, date, description)
+        }
+
+        createMarkerDialog = builder.setView(dialogView).create()
+        createMarkerDialog?.show()
+    }
+
+
+    // Sube la imagen a Firebase Storage y llama a la función para guardar el marcador
+    private fun uploadImageToFirebaseStorage(
+        imageUri: Uri,
+        latitude: Double,
+        longitude: Double,
+        date: String,
+        description: String
+    ) {
+        progressDialog = ProgressDialog(context)
+        progressDialog.setMessage("Subiendo imagen...")
+        progressDialog.setCancelable(false)
+        progressDialog.show()
+
+        val imageName = "${UUID.randomUUID()}.jpg"
+        val imageRef = storageReference.child(imageName)
+        imageRef.putFile(imageUri)
+            .addOnSuccessListener { taskSnapshot ->
+                taskSnapshot.storage.downloadUrl.addOnSuccessListener { uri ->
+                    val imageUrl = uri.toString()
+                    saveNewMarker(latitude, longitude, date, description, imageUrl)
+                    Toast.makeText(context, "Polaroid subida exitosamente", Toast.LENGTH_SHORT).show()
+                    progressDialog.dismiss()
+                    createMarkerDialog?.dismiss()
+                    selectLocationDialog?.dismiss()
+                }
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(context, "Error al subir la imagen: ${exception.message}", Toast.LENGTH_SHORT).show()
+                progressDialog.dismiss()
+            }
+    }
+
+    // Guarda el nuevo marcador en Firebase Realtime Database y lo muestra en el mapa
+    private fun saveNewMarker(
+        latitude: Double,
+        longitude: Double,
+        date: String,
+        description: String,
+        imageUrl: String
+    ) {
+        val newMarkerKey = databaseReference.push().key ?: return
+        val markerData = mapOf(
+            "latlng" to mapOf("lat" to latitude, "lng" to longitude),
+            "date" to date,
+            "description" to description,
+            "image" to imageUrl
+        )
+
+        databaseReference.child(newMarkerKey).setValue(markerData)
+            .addOnSuccessListener {
+                Log.d("Marcador", "Marcador guardado correctamente")
+                addMarker(latitude, longitude, date, description, imageUrl)
+                progressDialog.dismiss()
+                createMarkerDialog?.dismiss()
+                selectLocationDialog?.dismiss()
+            }
+            .addOnFailureListener { exception ->
+                Log.e("Marcador", "Error al guardar el marcador: ${exception.message}")
+                Toast.makeText(context, "Error al guardar el marcador", Toast.LENGTH_SHORT).show()
+                progressDialog.dismiss()
+            }
+    }
+
+}

@@ -1,0 +1,31 @@
+{
+  "project_info": {
+    "project_number": "716617534132",
+    "firebase_url": "https://besosporelmundo-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "besosporelmundo",
+    "storage_bucket": "besosporelmundo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:716617534132:android:cbf637d561e8dfb4dd25e1",
+        "android_client_info": {
+          "package_name": "com.besos.bpm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdkf2Zk-XCUdiw8QY4C2DyB3kifSuqSeY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1",
+  "default_web_client_id": "716617534132-abcde1234567890abcdefg.apps.googleusercontent.com"
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Fondo blanco con bordes suaves -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF" /> <!-- Color blanco -->
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+
+    <!-- Borde exterior más oscuro (opcional) -->
+    <item android:left="2dp" android:right="2dp" android:top="2dp" android:bottom="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#E0E0E0" /> <!-- Color del borde -->
+            <corners android:radius="16dp" /> <!-- Bordes redondeados -->
+        </shape>
+    </item>
+</layer-list>
