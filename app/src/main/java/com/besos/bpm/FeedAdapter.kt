@@ -1,5 +1,6 @@
 package com.besos.bpm
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,12 +9,25 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
-class FeedAdapter(private val markerList: List<MarkerItem>) : RecyclerView.Adapter<FeedAdapter.FeedViewHolder>() {
+class FeedAdapter(
+    private val markerList: List<MarkerItem>,
+    private val onMarkerClickListener: (MarkerItem) -> Unit // Listener para clics
+) : RecyclerView.Adapter<FeedAdapter.FeedViewHolder>() {
 
     inner class FeedViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val feedImage: ImageView = itemView.findViewById(R.id.feedImage)
         val feedDescription: TextView = itemView.findViewById(R.id.feedDescription)
         val feedDate: TextView = itemView.findViewById(R.id.feedDate)
+
+        init {
+            // Configurar el listener para el clic en el ítem
+            itemView.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onMarkerClickListener(markerList[position]) // Notificar clic
+                }
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FeedViewHolder {
