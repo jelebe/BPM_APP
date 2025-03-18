@@ -29,6 +29,9 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import android.text.InputType
+import android.os.Handler
+import android.os.Looper
+
 
 class MapFragment : Fragment(R.layout.map_fragment) {
 
@@ -64,6 +67,22 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         }
     }
 
+    // Calcula la distancia en metros entre dos puntos geográficos usando la fórmula de Haversine
+    private fun calculateDistance(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+        val earthRadiusKm = 6371 // Radio de la Tierra en kilómetros
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
+
+        val a = (Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2))
+
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        val distanceKm = earthRadiusKm * c
+
+        return distanceKm * 1000 // Convertir a metros
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -78,7 +97,10 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 osmdroidBasePath = File(ctx.filesDir, "osmdroid")
                 osmdroidTileCache = File(ctx.externalCacheDir, "tiles")
             }
+
         }
+
+
 
         // Configuración del MapView
         mapView.setTileSource(TileSourceFactory.MAPNIK)
@@ -108,6 +130,18 @@ class MapFragment : Fragment(R.layout.map_fragment) {
 
         // Al pulsar el botón flotante se muestra el diálogo para seleccionar ubicación
         createMarkerButton.setOnClickListener { showSelectLocationDialog() }
+
+        // Resaltar el marcador si se navega desde el FeedFragment
+        arguments?.let { args ->
+            val latitude = args.getDouble("latitude")
+            val longitude = args.getDouble("longitude")
+
+            Log.d("MapFragment", "Highlighting marker at lat: $latitude, lng: $longitude")
+
+            if (latitude != 0.0 && longitude != 0.0) {
+                highlightMarkerOnMap(latitude, longitude)
+            }
+        }
     }
 
     // Configuración de límites y niveles de zoom del MapView
@@ -225,7 +259,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             .into(dialogView.findViewById(R.id.markerImage))
 
         val dialog = builder.setView(dialogView).create()
-
         dialog.show()
     }
 
@@ -265,6 +298,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 updateCenterMarkerAndCoordinates(selectLocationMapView, centerMarker, currentCoordinates)
                 return true
             }
+
             override fun onZoom(event: ZoomEvent?): Boolean {
                 updateCenterMarkerAndCoordinates(selectLocationMapView, centerMarker, currentCoordinates)
                 return true
@@ -357,7 +391,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         createMarkerDialog?.show()
     }
 
-
     // Sube la imagen a Firebase Storage y llama a la función para guardar el marcador
     private fun uploadImageToFirebaseStorage(
         imageUri: Uri,
@@ -421,4 +454,86 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             }
     }
 
+    // Resalta un marcador en el mapa
+    private fun highlightMarkerOnMap(latitude: Double, longitude: Double) {
+        val geoPoint = GeoPoint(latitude, longitude)
+
+        // Centrar el mapa en las coordenadas
+        mapView.controller.animateTo(geoPoint)
+        mapView.controller.setZoom(16.0)
+
+        // Encontrar el marcador más cercano dentro de un rango de 50 metros
+        val markerToHighlight = markerList.minByOrNull { marker ->
+            calculateDistance(
+                marker.position.latitude,
+                marker.position.longitude,
+                geoPoint.latitude,
+                geoPoint.longitude
+            )
+        }
+
+        if (markerToHighlight != null) {
+            val distance = calculateDistance(
+                markerToHighlight.position.latitude,
+                markerToHighlight.position.longitude,
+                geoPoint.latitude,
+                geoPoint.longitude
+            )
+
+            if (distance <= 50.0) { // Verificar si está dentro del rango de 50 metros
+                Log.d("MapFragment", "Marker found within 50 meters: $distance meters")
+                animateMarker(markerToHighlight)
+            } else {
+                Log.e("MapFragment", "No marker found within 50 meters. Closest marker is $distance meters away.")
+            }
+        } else {
+            Log.e("MapFragment", "No markers available in the map.")
+        }
+    }
+
+    // Animar el marcador hacia arriba y abajo
+    private fun animateMarker(marker: Marker) {
+        val originalPosition = marker.position // Guardar la posición original del marcador
+        var isMovingUp = true // Controlar si el marcador está subiendo o bajando
+        val animationDuration = 3000L // Duración total de la animación en milisegundos
+        val stepInterval = 100L // Intervalo entre cada paso de la animación
+        val steps = (animationDuration / stepInterval).toInt() // Número de pasos
+        val offset = 0.0001 // Desplazamiento en grados (ajusta según sea necesario)
+
+        var currentStep = 0
+
+        val handler = Handler(Looper.getMainLooper())
+        val runnable = object : Runnable {
+            override fun run() {
+                if (currentStep < steps) {
+                    // Calcular la nueva posición del marcador
+                    val newLatitude = if (isMovingUp) {
+                        originalPosition.latitude + offset
+                    } else {
+                        originalPosition.latitude - offset
+                    }
+
+                    // Actualizar la posición del marcador
+                    marker.position = GeoPoint(newLatitude, originalPosition.longitude)
+                    mapView.invalidate() // Refrescar el mapa
+
+                    // Alternar la dirección del movimiento
+                    isMovingUp = !isMovingUp
+
+                    // Incrementar el contador de pasos
+                    currentStep++
+
+                    // Programar el siguiente paso
+                    handler.postDelayed(this, stepInterval)
+                } else {
+                    // Restaurar la posición original del marcador al final de la animación
+                    marker.position = originalPosition
+                    mapView.invalidate()
+                }
+            }
+        }
+
+        // Iniciar la animación
+        handler.post(runnable)
+    }
 }

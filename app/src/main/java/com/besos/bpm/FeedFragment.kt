@@ -11,6 +11,7 @@ import com.google.firebase.database.*
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.Date
+import com.besos.bpm.LatLngModel
 
 
 class FeedFragment : Fragment(R.layout.feed_fragment) {
@@ -26,10 +27,20 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
 
         feedRecyclerView = view.findViewById(R.id.feedRecyclerView)
         feedRecyclerView.layoutManager = LinearLayoutManager(context)
-        feedAdapter = FeedAdapter(markerItems)
+        feedAdapter = FeedAdapter(markerItems) { selectedMarker ->
+            // Navegar al MapFragment y pasar los datos del marcador seleccionado
+            val bundle = Bundle().apply {
+                putDouble("latitude", selectedMarker.latLng?.lat ?: 0.0)
+                putDouble("longitude", selectedMarker.latLng?.lng ?: 0.0)
+            }
+            val mapFragment = MapFragment().apply { arguments = bundle }
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, mapFragment)
+                .addToBackStack(null)
+                .commit()
+        }
         feedRecyclerView.adapter = feedAdapter
 
-        // Obtén la referencia a los marcadores en Firebase
         databaseReference = FirebaseDatabase.getInstance().reference.child("markers")
         loadFeed()
     }
@@ -42,21 +53,20 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                     val imageUrl = markerSnapshot.child("image").getValue(String::class.java) ?: ""
                     val description = markerSnapshot.child("description").getValue(String::class.java) ?: ""
                     val date = markerSnapshot.child("date").getValue(String::class.java) ?: ""
+                    val lat = markerSnapshot.child("latlng/lat").getValue(Double::class.java) ?: 0.0
+                    val lng = markerSnapshot.child("latlng/lng").getValue(Double::class.java) ?: 0.0
 
-                    // Solo añadimos elementos que tengan una imagen
                     if (imageUrl.isNotEmpty()) {
-                        val markerItem = MarkerItem(imageUrl, description, date)
+                        val markerItem = MarkerItem(imageUrl, description, date, LatLngModel(lat, lng))
                         markerItems.add(markerItem)
                     }
                 }
-                // Ordenar la lista de más reciente a más antigua (se asume el formato "yyyy-MM-dd")
-                val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 markerItems.sortByDescending { marker ->
                     try {
-                        dateFormat.parse(marker.date)?.time
+                        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).parse(marker.date)?.time
                     } catch (e: Exception) {
                         Log.e("FeedFragment", "Error parsing date: ${marker.date}", e)
-                        Long.MIN_VALUE  // En caso de que falle el parseo, se coloca una fecha muy antigua
+                        Long.MIN_VALUE
                     }
                 }
                 feedAdapter.notifyDataSetChanged()
@@ -68,6 +78,4 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
             }
         })
     }
-
-
 }

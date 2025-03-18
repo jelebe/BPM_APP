@@ -1,5 +1,7 @@
 package com.besos.bpm
 
+
+
 // Modelo de datos para los marcadores
 data class MarkerModel(
     var date: String = "", // Fecha del marcador
@@ -10,6 +12,6 @@ data class MarkerModel(
 
 // Modelo anidado para las coordenadas geográficas
 data class LatLngModel(
-    var lat: Double = 0.0, // Latitud
-    var lng: Double = 0.0  // Longitud
+    val lat: Double = 0.0, // Latitud
+    val lng: Double = 0.0  // Longitud
 )
