@@ -55,7 +55,7 @@ class FeedAdapter(
                             ScaleAnimation.RELATIVE_TO_SELF, 0.5f,
                             ScaleAnimation.RELATIVE_TO_SELF, 0.5f
                         ).apply {
-                            duration = 300
+                            duration = 600
                             fillAfter = true
                         }
                         view.startAnimation(scaleDown)
