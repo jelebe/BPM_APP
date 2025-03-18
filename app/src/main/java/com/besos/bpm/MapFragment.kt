@@ -154,7 +154,10 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                     val description = markerSnapshot.child("description").getValue(String::class.java) ?: "Sin descripción"
                     val imageUrl = markerSnapshot.child("image").getValue(String::class.java) ?: ""
                     if (lat != null && lng != null) {
-                        addMarker(lat, lng, date, description, imageUrl)
+                        // Redondear latitud y longitud a 6 decimales
+                        val roundedLat = String.format(Locale.US, "%.6f", lat).toDouble()
+                        val roundedLng = String.format(Locale.US, "%.6f", lng).toDouble()
+                        addMarker(roundedLat, roundedLng, date, description, imageUrl)
                     }
                 }
             }
@@ -189,14 +192,17 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             val description = markerSnapshot.child("description").getValue(String::class.java) ?: "Sin descripción"
             val imageUrl = markerSnapshot.child("image").getValue(String::class.java) ?: ""
             if (lat != null && lng != null) {
-                val key = Pair(lat, lng)
+                // Redondear latitud y longitud a 6 decimales
+                val roundedLat = String.format(Locale.US, "%.6f", lat).toDouble()
+                val roundedLng = String.format(Locale.US, "%.6f", lng).toDouble()
+                val key = Pair(roundedLat, roundedLng)
                 val existingMarker = currentMarkersMap[key]
                 if (existingMarker != null) {
                     existingMarker.title = description
                     existingMarker.snippet = date
                     newMarkersList.add(existingMarker)
                 } else {
-                    addMarker(lat, lng, date, description, imageUrl)
+                    addMarker(roundedLat, roundedLng, date, description, imageUrl)
                 }
             }
         }
@@ -255,23 +261,18 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         val selectLocationMapView = dialogView.findViewById<MapView>(R.id.selectLocationMapview)
         val currentCoordinates = dialogView.findViewById<TextView>(R.id.currentCoordinates)
         val selectLocationButton = dialogView.findViewById<Button>(R.id.selectLocationButton)
-
         selectLocationMapView.setTileSource(TileSourceFactory.MAPNIK)
         selectLocationMapView.setMultiTouchControls(true)
         selectLocationMapView.setTilesScaledToDpi(false)
-
         val madridGeoPoint = GeoPoint(40.4168, -3.7038)
         selectLocationMapView.controller.setCenter(madridGeoPoint)
         selectLocationMapView.controller.setZoom(14.0)
-
         val centerMarker = Marker(selectLocationMapView).apply {
-            icon = resources.getDrawable(R.drawable.custom_blue_marker, null) // Cambio aquí
+            icon = resources.getDrawable(R.drawable.custom_blue_marker, null)
             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
         }
-
         selectLocationMapView.overlays.add(centerMarker)
         centerMarker.position = madridGeoPoint
-
         selectLocationMapView.addMapListener(object : org.osmdroid.events.MapAdapter() {
             override fun onScroll(event: org.osmdroid.events.ScrollEvent?): Boolean {
                 updateCenterMarkerAndCoordinates(selectLocationMapView, centerMarker, currentCoordinates)
@@ -283,14 +284,12 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 return true
             }
         })
-
         selectLocationButton.setOnClickListener {
             val iGeoPoint = selectLocationMapView.mapCenter
             val centerGeoPoint = GeoPoint(iGeoPoint.latitude, iGeoPoint.longitude)
             dismissDialog(builder)
             showCreateMarkerDialog(centerGeoPoint)
         }
-
         selectLocationDialog = builder.setView(dialogView).create()
         selectLocationDialog?.show()
     }
@@ -298,9 +297,12 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     // Actualiza la posición del marcador central y muestra las coordenadas actuales
     private fun updateCenterMarkerAndCoordinates(mapView: MapView, marker: Marker, textView: TextView) {
         val centerIGeoPoint = mapView.mapCenter
-        val centerGeoPoint = GeoPoint(centerIGeoPoint.latitude, centerIGeoPoint.longitude)
+        // Redondear latitud y longitud a 6 decimales
+        val roundedLat = String.format(Locale.US, "%.6f", centerIGeoPoint.latitude).toDouble()
+        val roundedLng = String.format(Locale.US, "%.6f", centerIGeoPoint.longitude).toDouble()
+        val centerGeoPoint = GeoPoint(roundedLat, roundedLng)
         marker.position = centerGeoPoint
-        textView.text = "Latitud: ${centerGeoPoint.latitude}, Longitud: ${centerGeoPoint.longitude}"
+        textView.text = "Latitud: $roundedLat, Longitud: $roundedLng"
     }
 
     // Cierra un diálogo creado a partir de un AlertDialog.Builder
@@ -320,13 +322,10 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         val descriptionInput = dialogView.findViewById<EditText>(R.id.descriptionInput)
         val dateInput = dialogView.findViewById<EditText>(R.id.dateInput)
         val saveButton = dialogView.findViewById<Button>(R.id.saveMarkerButton)
-
         descriptionInput.inputType = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
         dateInput.inputType = InputType.TYPE_NULL
         dateInput.keyListener = null
-
         selectImageButton.setOnClickListener { selectImageLauncher.launch("image/*") }
-
         dateInput.setOnClickListener {
             val calendar = Calendar.getInstance()
             DatePickerDialog(
@@ -341,7 +340,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 calendar.get(Calendar.DAY_OF_MONTH)
             ).show()
         }
-
         saveButton.setOnClickListener {
             val description = descriptionInput.text.toString().trim()
             val date = dateInput.text.toString().trim()
@@ -359,7 +357,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             }
             uploadImageToFirebaseStorage(selectedImageUri!!, geoPoint.latitude, geoPoint.longitude, date, description)
         }
-
         createMarkerDialog = builder.setView(dialogView).create()
         createMarkerDialog?.show()
     }
@@ -382,7 +379,10 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             .addOnSuccessListener { taskSnapshot ->
                 taskSnapshot.storage.downloadUrl.addOnSuccessListener { uri ->
                     val imageUrl = uri.toString()
-                    saveNewMarker(latitude, longitude, date, description, imageUrl)
+                    // Redondear latitud y longitud a 6 decimales antes de guardar
+                    val roundedLat = String.format(Locale.US, "%.6f", latitude).toDouble()
+                    val roundedLng = String.format(Locale.US, "%.6f", longitude).toDouble()
+                    saveNewMarker(roundedLat, roundedLng, date, description, imageUrl)
                     Toast.makeText(context, "Polaroid subida exitosamente", Toast.LENGTH_SHORT).show()
                     progressDialog.dismiss()
                     createMarkerDialog?.dismiss()
