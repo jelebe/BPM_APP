@@ -1,0 +1,13 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <!-- Borde azul intenso -->
+    <stroke
+        android:width="2dp"
+        android:color="#0D47A1" />
+    <!-- Relleno azul claro -->
+    <solid android:color="#BBDEFB" />
+    <!-- Tamaño del círculo -->
+    <size
+        android:width="16dp"
+        android:height="16dp" />
+</shape>
