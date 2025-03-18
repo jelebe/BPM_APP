@@ -1,6 +1,8 @@
 HECHO 1.2.1 cambiar icono por punto azul
 
-1.2.2 Animaciones suaves:  Añade transiciones suaves entre actividades y fragmentos para mejorar la experiencia del usuario.
+ 1.2.2 Animaciones suaves:  Añade transiciones suaves entre actividades y fragmentos para mejorar la experiencia del usuario.
+            HECHO. EN EL FEED. DEJAR PRESIONADO Y QUE LA POLAARIOD SE AGRANDE UN POCO
+                   EN EL FEED. CUANDO CLICO UNA POLARIOD, QUE SE MUESTRE EN GRIS
 
 1.3.1 cambiar a 4 decimales la ubicacion
 
