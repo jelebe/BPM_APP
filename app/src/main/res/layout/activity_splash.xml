@@ -27,4 +27,14 @@
         android:layout_marginTop="16dp"
         android:gravity="center"
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/version_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Versión X.X.X"
+        android:textSize="12sp"
+        android:textColor="#80000000"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="16dp" />
 </LinearLayout>
