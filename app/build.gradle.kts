@@ -16,11 +16,8 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 1
-<<<<<<< Updated upstream
-        versionName = "1.1.1"
-=======
         versionName = "1.2.2"
->>>>>>> Stashed changes
+
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
