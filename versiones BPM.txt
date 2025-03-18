@@ -4,7 +4,7 @@ HECHO 1.2.2 Animaciones suaves:  Añade transiciones suaves entre actividades y 
         EN EL FEED. DEJAR PRESIONADO Y QUE LA POLAARIOD SE AGRANDE UN POCO
 
 
-1.3.1 cambiar a 4 decimales la ubicacion
+HECHO 1.3.1 cambiar a 4 decimales la ubicacion
 
 1.3.2 Tamaño máximo de imagen:  Limita el tamaño máximo de las imágenes que los usuarios pueden subir para evitar problemas de rendimiento.
 
