@@ -57,6 +57,17 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
+            // Verificar el tamaño de la imagen antes de proceder
+            context?.contentResolver?.openInputStream(uri)?.use { inputStream ->
+                val fileSizeInBytes = inputStream.available()
+                val fileSizeInMB = fileSizeInBytes / (1024 * 1024).toDouble()
+
+                if (fileSizeInMB > 9) {
+                    Toast.makeText(context, "El tamaño máximo permitido es de 9 MB", Toast.LENGTH_SHORT).show()
+                    return@registerForActivityResult
+                }
+            }
+
             selectedImageUri = uri
             currentCreateMarkerDialogView?.findViewById<ImageView>(R.id.imagePreview)?.let { imageView ->
                 Glide.with(this).load(uri).into(imageView)
@@ -261,18 +272,22 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         val selectLocationMapView = dialogView.findViewById<MapView>(R.id.selectLocationMapview)
         val currentCoordinates = dialogView.findViewById<TextView>(R.id.currentCoordinates)
         val selectLocationButton = dialogView.findViewById<Button>(R.id.selectLocationButton)
+
         selectLocationMapView.setTileSource(TileSourceFactory.MAPNIK)
         selectLocationMapView.setMultiTouchControls(true)
         selectLocationMapView.setTilesScaledToDpi(false)
+
         val madridGeoPoint = GeoPoint(40.4168, -3.7038)
         selectLocationMapView.controller.setCenter(madridGeoPoint)
         selectLocationMapView.controller.setZoom(14.0)
+
         val centerMarker = Marker(selectLocationMapView).apply {
             icon = resources.getDrawable(R.drawable.custom_blue_marker, null)
             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
         }
         selectLocationMapView.overlays.add(centerMarker)
         centerMarker.position = madridGeoPoint
+
         selectLocationMapView.addMapListener(object : org.osmdroid.events.MapAdapter() {
             override fun onScroll(event: org.osmdroid.events.ScrollEvent?): Boolean {
                 updateCenterMarkerAndCoordinates(selectLocationMapView, centerMarker, currentCoordinates)
@@ -284,12 +299,14 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 return true
             }
         })
+
         selectLocationButton.setOnClickListener {
             val iGeoPoint = selectLocationMapView.mapCenter
             val centerGeoPoint = GeoPoint(iGeoPoint.latitude, iGeoPoint.longitude)
             dismissDialog(builder)
             showCreateMarkerDialog(centerGeoPoint)
         }
+
         selectLocationDialog = builder.setView(dialogView).create()
         selectLocationDialog?.show()
     }
@@ -317,15 +334,19 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         val inflater = LayoutInflater.from(context)
         val dialogView = inflater.inflate(R.layout.dialog_create_marker, null)
         currentCreateMarkerDialogView = dialogView
+
         val imagePreview = dialogView.findViewById<ImageView>(R.id.imagePreview)
         val selectImageButton = dialogView.findViewById<Button>(R.id.selectImageButton)
         val descriptionInput = dialogView.findViewById<EditText>(R.id.descriptionInput)
         val dateInput = dialogView.findViewById<EditText>(R.id.dateInput)
         val saveButton = dialogView.findViewById<Button>(R.id.saveMarkerButton)
+
         descriptionInput.inputType = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES
         dateInput.inputType = InputType.TYPE_NULL
         dateInput.keyListener = null
+
         selectImageButton.setOnClickListener { selectImageLauncher.launch("image/*") }
+
         dateInput.setOnClickListener {
             val calendar = Calendar.getInstance()
             DatePickerDialog(
@@ -340,23 +361,29 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 calendar.get(Calendar.DAY_OF_MONTH)
             ).show()
         }
+
         saveButton.setOnClickListener {
             val description = descriptionInput.text.toString().trim()
             val date = dateInput.text.toString().trim()
+
             if (description.isEmpty()) {
                 Toast.makeText(context, "Por favor, ingresa una descripción", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             if (date.isEmpty()) {
                 Toast.makeText(context, "Por favor, selecciona una fecha", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             if (selectedImageUri == null) {
                 Toast.makeText(context, "Por favor, selecciona una imagen", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
             uploadImageToFirebaseStorage(selectedImageUri!!, geoPoint.latitude, geoPoint.longitude, date, description)
         }
+
         createMarkerDialog = builder.setView(dialogView).create()
         createMarkerDialog?.show()
     }
@@ -373,8 +400,10 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         progressDialog.setMessage("Subiendo imagen...")
         progressDialog.setCancelable(false)
         progressDialog.show()
+
         val imageName = "${UUID.randomUUID()}.jpg"
         val imageRef = storageReference.child(imageName)
+
         imageRef.putFile(imageUri)
             .addOnSuccessListener { taskSnapshot ->
                 taskSnapshot.storage.downloadUrl.addOnSuccessListener { uri ->
@@ -410,6 +439,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             "description" to description,
             "image" to imageUrl
         )
+
         databaseReference.child(newMarkerKey).setValue(markerData)
             .addOnSuccessListener {
                 Log.d("Marcador", "Marcador guardado correctamente")
@@ -428,9 +458,11 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     // Resalta un marcador en el mapa
     private fun highlightMarkerOnMap(latitude: Double, longitude: Double) {
         val geoPoint = GeoPoint(latitude, longitude)
+
         // Centrar el mapa en las coordenadas
         mapView.controller.animateTo(geoPoint)
         mapView.controller.setZoom(16.0)
+
         // Encontrar el marcador más cercano dentro de un rango de 50 metros
         val markerToHighlight = markerList.minByOrNull { marker ->
             calculateDistance(
@@ -440,6 +472,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 geoPoint.longitude
             )
         }
+
         if (markerToHighlight != null) {
             val distance = calculateDistance(
                 markerToHighlight.position.latitude,
@@ -447,6 +480,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 geoPoint.latitude,
                 geoPoint.longitude
             )
+
             if (distance <= 50.0) { // Verificar si está dentro del rango de 50 metros
                 Log.d("MapFragment", "Marker found within 50 meters: $distance meters")
                 animateMarker(markerToHighlight)
@@ -467,6 +501,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         val steps = (animationDuration / stepInterval).toInt() // Número de pasos
         val offset = 0.0001 // Desplazamiento en grados (ajusta según sea necesario)
         var currentStep = 0
+
         val handler = Handler(Looper.getMainLooper())
         val runnable = object : Runnable {
             override fun run() {
@@ -477,13 +512,17 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                     } else {
                         originalPosition.latitude - offset
                     }
+
                     // Actualizar la posición del marcador
                     marker.position = GeoPoint(newLatitude, originalPosition.longitude)
                     mapView.invalidate() // Refrescar el mapa
+
                     // Alternar la dirección del movimiento
                     isMovingUp = !isMovingUp
+
                     // Incrementar el contador de pasos
                     currentStep++
+
                     // Programar el siguiente paso
                     handler.postDelayed(this, stepInterval)
                 } else {
@@ -493,6 +532,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 }
             }
         }
+
         // Iniciar la animación
         handler.post(runnable)
     }
