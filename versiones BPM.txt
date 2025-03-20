@@ -8,6 +8,7 @@ HECHO 1.3.1 cambiar a 4 decimales la ubicacion
 
 HECHO 1.3.2 Tamaño máximo de imagen:  Limita el tamaño máximo de las imágenes que los usuarios pueden subir para evitar problemas de rendimiento.
 
+HECHO 1.3.3 Hacer fotos directamente desde la app.
 
 1.4.1 Zoom inicial dinámico:  En lugar de centrar siempre en Madrid, detecta la ubicación del usuario (si está disponible) y ajusta el zoom inicial según su posición.
 

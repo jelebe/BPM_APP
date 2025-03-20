@@ -61,13 +61,11 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             context?.contentResolver?.openInputStream(uri)?.use { inputStream ->
                 val fileSizeInBytes = inputStream.available()
                 val fileSizeInMB = fileSizeInBytes / (1024 * 1024).toDouble()
-
                 if (fileSizeInMB > 9) {
                     Toast.makeText(context, "El tamaño máximo permitido es de 9 MB", Toast.LENGTH_SHORT).show()
                     return@registerForActivityResult
                 }
             }
-
             selectedImageUri = uri
             currentCreateMarkerDialogView?.findViewById<ImageView>(R.id.imagePreview)?.let { imageView ->
                 Glide.with(this).load(uri).into(imageView)
@@ -77,17 +75,31 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         }
     }
 
-    // Calcula la distancia en metros entre dos puntos geográficos usando la fórmula de Haversine
-    private fun calculateDistance(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
-        val earthRadiusKm = 6371 // Radio de la Tierra en kilómetros
-        val dLat = Math.toRadians(lat2 - lat1)
-        val dLng = Math.toRadians(lng2 - lng1)
-        val a = (Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
-                Math.sin(dLng / 2) * Math.sin(dLng / 2))
-        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-        val distanceKm = earthRadiusKm * c
-        return distanceKm * 1000 // Convertir a metros
+    // Launcher para tomar una foto desde la cámara
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicturePreview()
+    ) { bitmap: Bitmap? ->
+        if (bitmap != null) {
+            // Convertir el Bitmap a Uri
+            val uri = bitmapToUri(bitmap)
+            selectedImageUri = uri
+
+            // Mostrar la vista previa de la imagen
+            currentCreateMarkerDialogView?.findViewById<ImageView>(R.id.imagePreview)?.let { imageView ->
+                Glide.with(this).load(uri).into(imageView)
+            }
+        } else {
+            Toast.makeText(context, "No se tomó ninguna foto", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Función auxiliar para convertir un Bitmap a Uri
+    private fun bitmapToUri(bitmap: Bitmap): Uri {
+        val file = File.createTempFile("temp_image", ".jpg", context?.cacheDir)
+        file.outputStream().use { outputStream ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+        }
+        return Uri.fromFile(file)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -345,7 +357,18 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         dateInput.inputType = InputType.TYPE_NULL
         dateInput.keyListener = null
 
-        selectImageButton.setOnClickListener { selectImageLauncher.launch("image/*") }
+        selectImageButton.setOnClickListener {
+            val options = arrayOf("Seleccionar de la galería", "Tomar una foto")
+            AlertDialog.Builder(requireContext())
+                .setTitle("Seleccionar imagen")
+                .setItems(options) { _, which ->
+                    when (which) {
+                        0 -> selectImageLauncher.launch("image/*") // Seleccionar de la galería
+                        1 -> takePictureLauncher.launch(null)      // Tomar una foto
+                    }
+                }
+                .show()
+        }
 
         dateInput.setOnClickListener {
             val calendar = Calendar.getInstance()
@@ -365,22 +388,18 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         saveButton.setOnClickListener {
             val description = descriptionInput.text.toString().trim()
             val date = dateInput.text.toString().trim()
-
             if (description.isEmpty()) {
                 Toast.makeText(context, "Por favor, ingresa una descripción", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
             if (date.isEmpty()) {
                 Toast.makeText(context, "Por favor, selecciona una fecha", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
             if (selectedImageUri == null) {
                 Toast.makeText(context, "Por favor, selecciona una imagen", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-
             uploadImageToFirebaseStorage(selectedImageUri!!, geoPoint.latitude, geoPoint.longitude, date, description)
         }
 
@@ -403,7 +422,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
 
         val imageName = "${UUID.randomUUID()}.jpg"
         val imageRef = storageReference.child(imageName)
-
         imageRef.putFile(imageUri)
             .addOnSuccessListener { taskSnapshot ->
                 taskSnapshot.storage.downloadUrl.addOnSuccessListener { uri ->
@@ -439,7 +457,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             "description" to description,
             "image" to imageUrl
         )
-
         databaseReference.child(newMarkerKey).setValue(markerData)
             .addOnSuccessListener {
                 Log.d("Marcador", "Marcador guardado correctamente")
@@ -458,11 +475,9 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     // Resalta un marcador en el mapa
     private fun highlightMarkerOnMap(latitude: Double, longitude: Double) {
         val geoPoint = GeoPoint(latitude, longitude)
-
         // Centrar el mapa en las coordenadas
         mapView.controller.animateTo(geoPoint)
         mapView.controller.setZoom(16.0)
-
         // Encontrar el marcador más cercano dentro de un rango de 50 metros
         val markerToHighlight = markerList.minByOrNull { marker ->
             calculateDistance(
@@ -472,7 +487,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 geoPoint.longitude
             )
         }
-
         if (markerToHighlight != null) {
             val distance = calculateDistance(
                 markerToHighlight.position.latitude,
@@ -480,7 +494,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 geoPoint.latitude,
                 geoPoint.longitude
             )
-
             if (distance <= 50.0) { // Verificar si está dentro del rango de 50 metros
                 Log.d("MapFragment", "Marker found within 50 meters: $distance meters")
                 animateMarker(markerToHighlight)
@@ -501,7 +514,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         val steps = (animationDuration / stepInterval).toInt() // Número de pasos
         val offset = 0.0001 // Desplazamiento en grados (ajusta según sea necesario)
         var currentStep = 0
-
         val handler = Handler(Looper.getMainLooper())
         val runnable = object : Runnable {
             override fun run() {
@@ -512,17 +524,13 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                     } else {
                         originalPosition.latitude - offset
                     }
-
                     // Actualizar la posición del marcador
                     marker.position = GeoPoint(newLatitude, originalPosition.longitude)
                     mapView.invalidate() // Refrescar el mapa
-
                     // Alternar la dirección del movimiento
                     isMovingUp = !isMovingUp
-
                     // Incrementar el contador de pasos
                     currentStep++
-
                     // Programar el siguiente paso
                     handler.postDelayed(this, stepInterval)
                 } else {
@@ -532,8 +540,20 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 }
             }
         }
-
         // Iniciar la animación
         handler.post(runnable)
+    }
+
+    // Calcula la distancia en metros entre dos puntos geográficos usando la fórmula de Haversine
+    private fun calculateDistance(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
+        val earthRadiusKm = 6371 // Radio de la Tierra en kilómetros
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLng = Math.toRadians(lng2 - lng1)
+        val a = (Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2))
+        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        val distanceKm = earthRadiusKm * c
+        return distanceKm * 1000 // Convertir a metros
     }
 }
