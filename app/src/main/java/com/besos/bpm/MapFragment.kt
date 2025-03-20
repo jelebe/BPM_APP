@@ -162,7 +162,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     private fun configureMapLimits() {
         val boundingBox = BoundingBox(85.0, 180.0, -85.0, -180.0)
         mapView.setScrollableAreaLimitDouble(boundingBox)
-        mapView.minZoomLevel = 2.0
+        mapView.minZoomLevel = 4.0
         mapView.maxZoomLevel = 20.0
     }
 
