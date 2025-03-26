@@ -14,10 +14,10 @@ HECHO 1.3.4 Cambio color botón flotante al estido de la app.  (hecho en el bran
             Cambio de fuente en el feed.
 
 
-1.4.1 Cambios en Firebase. Añadimos ciudad y país para poder filtrar.
+HECHO 1.4.1 Cambios en Firebase. Añadimos ciudad y país para poder filtrar.
 
 
-1.4.2 Filtro en el FeedFragment:  Añade opciones para filtrar los marcadores por fecha, ubicación o descripción en el FeedFragment.
+HECHO 1.4.2 Filtro en el FeedFragment:  Añade opciones para filtrar los marcadores por fecha, ubicación o descripción en el FeedFragment.
 
 
 1.5.1 Zoom inicial dinámico:  En lugar de centrar siempre en Madrid, detecta la ubicación del usuario (si está disponible) y ajusta el zoom inicial según su posición.

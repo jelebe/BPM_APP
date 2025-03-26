@@ -1,1 +1,1 @@
-Versión 1.4.1
+Versión 1.4.2
