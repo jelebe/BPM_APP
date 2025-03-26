@@ -1,13 +1,13 @@
 package com.besos.bpm
 
-
-
 // Modelo de datos para los marcadores
 data class MarkerModel(
     var date: String = "", // Fecha del marcador
     var description: String = "", // Descripción del marcador
     var image: String = "", // URL de la imagen almacenada en Firebase Storage
-    var latLng: LatLngModel = LatLngModel() // Coordenadas geográficas
+    var latLng: LatLngModel = LatLngModel(), // Coordenadas geográficas
+    var city: String? = null, // Ciudad
+    var country: String? = null // País
 )
 
 // Modelo anidado para las coordenadas geográficas

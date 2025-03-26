@@ -6,5 +6,7 @@ data class MarkerItem(
     val imageUrl: String = "",
     val description: String = "",
     val date: String = "",
-    val latLng: LatLngModel? = null // Usa LatLngModel aquí
+    val latLng: LatLngModel? = null,// Usa LatLngModel aquí
+    val city: String? = null, // Ciudad
+    val country: String? = null // País
 )
