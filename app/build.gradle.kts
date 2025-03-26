@@ -15,8 +15,8 @@ android {
         applicationId = "com.besos.bpm"
         minSdk = 29
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.3.4"
+        versionCode = 41
+        versionName = "1.4.1"
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -94,6 +94,8 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.6.0") // Si estás en una versión más reciente
     implementation("androidx.fragment:fragment-ktx:1.4.0") // Necesario si usas fragmentos
 
+    implementation("com.squareup.retrofit2:retrofit:2.9.0") // Obtener País y Ciudad
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Obtener País y Ciudad
 
 
 }

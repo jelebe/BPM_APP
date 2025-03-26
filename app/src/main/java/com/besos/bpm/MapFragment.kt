@@ -31,6 +31,7 @@ import java.util.*
 import android.text.InputType
 import android.os.Handler
 import android.os.Looper
+import retrofit2.Call
 
 class MapFragment : Fragment(R.layout.map_fragment) {
 
@@ -104,6 +105,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
 
         // Inicializar las vistas del fragmento
         mapView = view.findViewById(R.id.mapview)
@@ -450,26 +452,60 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         description: String,
         imageUrl: String
     ) {
-        val newMarkerKey = databaseReference.push().key ?: return
-        val markerData = mapOf(
-            "latlng" to mapOf("lat" to latitude, "lng" to longitude),
-            "date" to date,
-            "description" to description,
-            "image" to imageUrl
-        )
-        databaseReference.child(newMarkerKey).setValue(markerData)
-            .addOnSuccessListener {
-                Log.d("Marcador", "Marcador guardado correctamente")
-                addMarker(latitude, longitude, date, description, imageUrl)
-                progressDialog.dismiss()
-                createMarkerDialog?.dismiss()
-                selectLocationDialog?.dismiss()
+        progressDialog.setMessage("Obteniendo ubicación...")
+        // Llamar al servicio de Nominatim
+        RetrofitClient.instance.getReverseGeocode(latitude, longitude).enqueue(object :
+            retrofit2.Callback<NominatimResponse> {
+            override fun onResponse(call: Call<NominatimResponse>, response: retrofit2.Response<NominatimResponse>) {
+                if (response.isSuccessful) {
+                    val address = response.body()?.address
+                    val city = address?.city ?: address?.town ?: address?.village
+                    val country = address?.country
+
+                    // Generar una clave única para el nuevo marcador
+                    val newMarkerKey = databaseReference.push().key
+                    if (newMarkerKey == null) {
+                        Log.e("Firebase", "Error al generar una clave para el marcador")
+                        Toast.makeText(context, "Error al generar una clave para el marcador", Toast.LENGTH_SHORT).show()
+                        progressDialog.dismiss()
+                        return
+                    }
+
+                    // Guardar el marcador con la ciudad y el país
+                    val markerData = mapOf(
+                        "latlng" to mapOf("lat" to latitude, "lng" to longitude),
+                        "date" to date,
+                        "description" to description,
+                        "image" to imageUrl,
+                        "city" to city,
+                        "country" to country
+                    )
+                    databaseReference.child(newMarkerKey).setValue(markerData)
+                        .addOnSuccessListener {
+                            Log.d("Marcador", "Marcador guardado correctamente")
+                            addMarker(latitude, longitude, date, description, imageUrl)
+                            progressDialog.dismiss()
+                            createMarkerDialog?.dismiss()
+                            selectLocationDialog?.dismiss()
+                        }
+                        .addOnFailureListener { exception ->
+                            Log.e("Marcador", "Error al guardar el marcador: ${exception.message}")
+                            Toast.makeText(context, "Error al guardar el marcador", Toast.LENGTH_SHORT).show()
+                            progressDialog.dismiss()
+                        }
+                } else {
+                    Log.e("Nominatim", "Error en la respuesta: ${response.errorBody()}")
+                    Toast.makeText(context, "Error al obtener la ubicación", Toast.LENGTH_SHORT).show()
+                    progressDialog.dismiss()
+                }
             }
-            .addOnFailureListener { exception ->
-                Log.e("Marcador", "Error al guardar el marcador: ${exception.message}")
-                Toast.makeText(context, "Error al guardar el marcador", Toast.LENGTH_SHORT).show()
+
+            override fun onFailure(call: Call<NominatimResponse>, t: Throwable) {
+                Log.e("Nominatim", "Error en la solicitud: ${t.message}")
+                Toast.makeText(context, "Error al obtener la ubicación", Toast.LENGTH_SHORT).show()
                 progressDialog.dismiss()
             }
+        })
     }
 
     // Resalta un marcador en el mapa
@@ -556,4 +592,11 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         val distanceKm = earthRadiusKm * c
         return distanceKm * 1000 // Convertir a metros
     }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        menu.clear() // Limpiar el menú anterior
+        //inflater.inflate(R.menu.map_toolbar_menu, menu) // Usa el menú específico para MapFragment
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
 }

@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
 class FeedAdapter(
-    private val markerList: List<MarkerItem>,
+    private val markerList: MutableList<MarkerItem>,
     private val onMarkerClickListener: (MarkerItem) -> Unit // Listener para clics
 ) : RecyclerView.Adapter<FeedAdapter.FeedViewHolder>() {
 
@@ -88,4 +88,11 @@ class FeedAdapter(
     }
 
     override fun getItemCount(): Int = markerList.size
+
+    // Metodo para actualizar los datos del adaptador
+    fun updateData(newData: List<MarkerItem>) {
+        markerList.clear()
+        markerList.addAll(newData)
+        notifyDataSetChanged()
+    }
 }

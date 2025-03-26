@@ -13,14 +13,18 @@ HECHO 1.3.3 Hacer fotos directamente desde la app.
 HECHO 1.3.4 Cambio color botón flotante al estido de la app.  (hecho en el branch de 1.3.3)
             Cambio de fuente en el feed.
 
-1.4.1 Zoom inicial dinámico:  En lugar de centrar siempre en Madrid, detecta la ubicación del usuario (si está disponible) y ajusta el zoom inicial según su posición.
+
+1.4.1 Cambios en Firebase. Añadimos ciudad y país para poder filtrar.
 
 
-1.5.1 Filtro en el FeedFragment:  Añade opciones para filtrar los marcadores por fecha, ubicación o descripción en el FeedFragment.
+1.4.2 Filtro en el FeedFragment:  Añade opciones para filtrar los marcadores por fecha, ubicación o descripción en el FeedFragment.
+
+
+1.5.1 Zoom inicial dinámico:  En lugar de centrar siempre en Madrid, detecta la ubicación del usuario (si está disponible) y ajusta el zoom inicial según su posición.
+
 
 
 1.6.1 Edición/eliminación de marcadores:  Permite a los usuarios editar o eliminar sus propios marcadores después de crearlos.
-
 
 
 1.7.1 Glide optimizado:  Configura Glide para usar caché de imágenes y evitar descargar imágenes repetidamente.

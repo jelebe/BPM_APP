@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- RecyclerView para mostrar el feed de marcadores -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/feedRecyclerView"
         android:layout_width="0dp"
@@ -13,6 +14,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:background="@drawable/button_background"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:background="@drawable/button_background" />
 
+</androidx.constraintlayout.widget.ConstraintLayout>

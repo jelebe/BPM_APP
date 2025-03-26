@@ -1,10 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"> <!-- Añade esta línea -->
-    <!-- Botón Log Out -->
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Menú desplegable con opciones de filtro -->
+    <item
+        android:id="@+id/action_filter_menu"
+        android:title="Filtrar"
+        android:icon="@drawable/ic_filter"
+        app:showAsAction="always"> <!-- Asegura que siempre sea un ícono visible -->
+        <menu>
+            <item
+                android:id="@+id/action_filter_city"
+                android:title="Por ciudad" />
+            <item
+                android:id="@+id/action_filter_country"
+                android:title="Por país" />
+            <item
+                android:id="@+id/action_filter_date_range"
+                android:title="Por rango de fechas" />
+            <!--        <item
+                        android:id="@+id/action_clear_filters"
+                        android:title="Limpiar filtros" />-->
+                </menu>
+            </item>
+
+            <!-- Botón Log Out -->
     <item
         android:id="@+id/action_logout"
-        android:title="Log Out"
+        android:title="Cerrar sesión"
         android:icon="@drawable/ic_logout"
-        app:showAsAction="ifRoom|withText" /> <!-- Usa app:showAsAction -->
+        app:showAsAction="ifRoom|withText" />
+
 </menu>
