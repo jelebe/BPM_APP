@@ -5,8 +5,8 @@
         <shape>
             <!-- Fondo del botón en estado presionado -->
             <gradient
-                android:startColor="#EBE9E9"
-                android:endColor="#EBE9E9" />
+                android:startColor="#F2F1F1"
+                android:endColor="#F2F1F1" />
             <corners android:radius="8dp" />
 
         </shape>
@@ -16,8 +16,8 @@
         <shape>
             <!-- Fondo del botón en estado normal -->
             <gradient
-                android:startColor="#EBE9E9"
-                android:endColor="#EBE9E9" />
+                android:startColor="#F2F1F1"
+                android:endColor="#F2F1F1" />
             <corners android:radius="8dp" />
         </shape>
     </item>
