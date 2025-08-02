@@ -72,6 +72,9 @@ dependencies {
     // Firebase Realtime Database
     implementation("com.google.firebase:firebase-database-ktx")
 
+    // Firebase Messaging
+    implementation("com.google.firebase:firebase-messaging-ktx")
+
     // Dependencia para AppCompat (necesaria para AppCompatActivity)
     implementation("androidx.appcompat:appcompat:1.6.1")
 

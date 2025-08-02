@@ -1,0 +1,309 @@
+[debug] [2025-08-02T14:12:13.679Z] ----------------------------------------------------------------------
+[debug] [2025-08-02T14:12:13.682Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\jesus\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions
+[debug] [2025-08-02T14:12:13.682Z] CLI Version:   14.11.2
+[debug] [2025-08-02T14:12:13.682Z] Platform:      win32
+[debug] [2025-08-02T14:12:13.682Z] Node Version:  v22.18.0
+[debug] [2025-08-02T14:12:13.683Z] Time:          Sat Aug 02 2025 16:12:13 GMT+0200 (hora de verano de Europa central)
+[debug] [2025-08-02T14:12:13.683Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-08-02T14:12:13.865Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-08-02T14:12:13.865Z] > authorizing via signed-in user (jesusocu@hotmail.com)
+[debug] [2025-08-02T14:12:13.865Z] [iam] checking project besosporelmundo for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2025-08-02T14:12:13.866Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:13.866Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:13.867Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo:testIamPermissions [none]
+[debug] [2025-08-02T14:12:13.867Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo:testIamPermissions x-goog-quota-user=projects/besosporelmundo
+[debug] [2025-08-02T14:12:13.867Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2025-08-02T14:12:14.094Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo:testIamPermissions 200
+[debug] [2025-08-02T14:12:14.095Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2025-08-02T14:12:14.095Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:14.095Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:14.095Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/besosporelmundo/serviceAccounts/besosporelmundo@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2025-08-02T14:12:14.095Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/besosporelmundo/serviceAccounts/besosporelmundo@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2025-08-02T14:12:14.751Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/besosporelmundo/serviceAccounts/besosporelmundo@appspot.gserviceaccount.com:testIamPermissions 404
+[debug] [2025-08-02T14:12:14.751Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/besosporelmundo/serviceAccounts/besosporelmundo@appspot.gserviceaccount.com:testIamPermissions {"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}}
+[debug] [2025-08-02T14:12:14.751Z] [functions] service account IAM check errored, deploy may fail: Request to https://iam.googleapis.com/v1/projects/besosporelmundo/serviceAccounts/besosporelmundo@appspot.gserviceaccount.com:testIamPermissions had HTTP Error: 404, Unknown service account {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}},"response":{"statusCode":404}},"exit":1,"message":"Request to https://iam.googleapis.com/v1/projects/besosporelmundo/serviceAccounts/besosporelmundo@appspot.gserviceaccount.com:testIamPermissions had HTTP Error: 404, Unknown service account","status":404}
+[info] 
+[info] === Deploying to 'besosporelmundo'...
+[info] 
+[info] i  deploying functions 
+[info] Running command: npm --prefix "$RESOURCE_DIR" run lint
+[info] +  functions: Finished running predeploy script. 
+[debug] [2025-08-02T14:12:15.234Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:15.234Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:15.234Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo [none]
+[debug] [2025-08-02T14:12:15.430Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo 200
+[debug] [2025-08-02T14:12:15.430Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo {"projectNumber":"716617534132","projectId":"besosporelmundo","lifecycleState":"ACTIVE","name":"Besosporelmundo","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-01-22T12:14:29.390651Z"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2025-08-02T14:12:15.433Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:15.433Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:15.433Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/besosporelmundo/adminSdkConfig [none]
+[debug] [2025-08-02T14:12:16.318Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/besosporelmundo/adminSdkConfig 200
+[debug] [2025-08-02T14:12:16.318Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/besosporelmundo/adminSdkConfig {"projectId":"besosporelmundo","databaseURL":"https://besosporelmundo-default-rtdb.europe-west1.firebasedatabase.app","storageBucket":"besosporelmundo.firebasestorage.app"}
+[debug] [2025-08-02T14:12:16.318Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:16.319Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:16.319Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/besosporelmundo/configs [none]
+[debug] [2025-08-02T14:12:30.427Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/besosporelmundo/configs 200
+[debug] [2025-08-02T14:12:30.427Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/besosporelmundo/configs {}
+[debug] [2025-08-02T14:12:30.428Z] Validating nodejs source
+[warn] !  functions: Runtime Node.js 18 was deprecated on 2025-04-30 and will be decommissioned on 2025-10-30, after which you will not be able to deploy without upgrading. Consider upgrading now to avoid disruption. See https://cloud.google.com/functions/docs/runtime-support for full details on the lifecycle policy 
+[debug] [2025-08-02T14:12:31.399Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "echo 'Lint skipped'",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.4.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-08-02T14:12:31.400Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[debug] [2025-08-02T14:12:31.401Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-08-02T14:12:31.410Z] Found firebase-functions binary at 'C:\Users\jesus\Documents\GitHub\BPM_APP\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8904
+
+[debug] [2025-08-02T14:12:31.913Z] Got response from /__/functions.yaml {"endpoints":{"sendMarkerNotification":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"eventTrigger":{"eventType":"google.firebase.database.ref.v1.created","eventFilters":{},"eventFilterPathPatterns":{"ref":"markers/{markerId}","instance":"*"},"retry":false},"entryPoint":"sendMarkerNotification"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[info] i  extensions: ensuring required API firebaseextensions.googleapis.com is enabled... 
+[debug] [2025-08-02T14:12:35.939Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:35.939Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:35.939Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/besosporelmundo/services/firebaseextensions.googleapis.com [none]
+[debug] [2025-08-02T14:12:35.940Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/besosporelmundo/services/firebaseextensions.googleapis.com x-goog-quota-user=projects/besosporelmundo
+[debug] [2025-08-02T14:12:36.713Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/besosporelmundo/services/firebaseextensions.googleapis.com 200
+[debug] [2025-08-02T14:12:36.713Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/besosporelmundo/services/firebaseextensions.googleapis.com [omitted]
+[info] +  extensions: required API firebaseextensions.googleapis.com is enabled 
+[debug] [2025-08-02T14:12:36.717Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-08-02T14:12:36.717Z] > authorizing via signed-in user (jesusocu@hotmail.com)
+[debug] [2025-08-02T14:12:36.718Z] [iam] checking project besosporelmundo for permissions ["firebase.projects.get","firebaseextensions.instances.list"]
+[debug] [2025-08-02T14:12:36.718Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:36.718Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:36.718Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo:testIamPermissions [none]
+[debug] [2025-08-02T14:12:36.718Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo:testIamPermissions x-goog-quota-user=projects/besosporelmundo
+[debug] [2025-08-02T14:12:36.718Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[debug] [2025-08-02T14:12:37.319Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo:testIamPermissions 200
+[debug] [2025-08-02T14:12:37.319Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[debug] [2025-08-02T14:12:37.319Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:37.320Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:37.320Z] >>> [apiv2][query] GET https://firebaseextensions.googleapis.com/v1beta/projects/besosporelmundo/instances pageSize=100&pageToken=
+[debug] [2025-08-02T14:12:38.069Z] <<< [apiv2][status] GET https://firebaseextensions.googleapis.com/v1beta/projects/besosporelmundo/instances 200
+[debug] [2025-08-02T14:12:38.069Z] <<< [apiv2][body] GET https://firebaseextensions.googleapis.com/v1beta/projects/besosporelmundo/instances {}
+[info] i  functions: preparing functions directory for uploading... 
+[info] i  functions: packaged C:\Users\jesus\Documents\GitHub\BPM_APP\functions (71.54 KB) for uploading 
+[debug] [2025-08-02T14:12:38.099Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:38.099Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:38.099Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v1/projects/besosporelmundo/locations/-/functions [none]
+[debug] [2025-08-02T14:12:38.714Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v1/projects/besosporelmundo/locations/-/functions 200
+[debug] [2025-08-02T14:12:38.714Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v1/projects/besosporelmundo/locations/-/functions {}
+[debug] [2025-08-02T14:12:38.714Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:38.714Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:38.714Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/besosporelmundo/locations/-/functions filter=environment%3D%22GEN_2%22
+[debug] [2025-08-02T14:12:39.755Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/besosporelmundo/locations/-/functions 200
+[debug] [2025-08-02T14:12:39.755Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/besosporelmundo/locations/-/functions {}
+[info] i  functions: ensuring required API run.googleapis.com is enabled... 
+[debug] [2025-08-02T14:12:39.757Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:39.757Z] Checked if tokens are valid: true, expires at: 1754146883795
+[info] i  functions: ensuring required API eventarc.googleapis.com is enabled... 
+[debug] [2025-08-02T14:12:39.758Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:39.758Z] Checked if tokens are valid: true, expires at: 1754146883795
+[info] i  functions: ensuring required API pubsub.googleapis.com is enabled... 
+[debug] [2025-08-02T14:12:39.758Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:39.758Z] Checked if tokens are valid: true, expires at: 1754146883795
+[info] i  functions: ensuring required API storage.googleapis.com is enabled... 
+[debug] [2025-08-02T14:12:39.759Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:39.759Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:39.759Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/run.googleapis.com [none]
+[debug] [2025-08-02T14:12:39.759Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/run.googleapis.com x-goog-quota-user=projects/716617534132
+[debug] [2025-08-02T14:12:39.759Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/eventarc.googleapis.com [none]
+[debug] [2025-08-02T14:12:39.759Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/eventarc.googleapis.com x-goog-quota-user=projects/716617534132
+[debug] [2025-08-02T14:12:39.761Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/pubsub.googleapis.com [none]
+[debug] [2025-08-02T14:12:39.761Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/pubsub.googleapis.com x-goog-quota-user=projects/716617534132
+[debug] [2025-08-02T14:12:39.762Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/storage.googleapis.com [none]
+[debug] [2025-08-02T14:12:39.762Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/storage.googleapis.com x-goog-quota-user=projects/716617534132
+[debug] [2025-08-02T14:12:40.088Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/run.googleapis.com 200
+[debug] [2025-08-02T14:12:40.088Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/run.googleapis.com [omitted]
+[info] +  functions: required API run.googleapis.com is enabled 
+[debug] [2025-08-02T14:12:40.544Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/pubsub.googleapis.com 200
+[debug] [2025-08-02T14:12:40.544Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/pubsub.googleapis.com [omitted]
+[info] +  functions: required API pubsub.googleapis.com is enabled 
+[debug] [2025-08-02T14:12:40.595Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/eventarc.googleapis.com 200
+[debug] [2025-08-02T14:12:40.595Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/eventarc.googleapis.com [omitted]
+[info] +  functions: required API eventarc.googleapis.com is enabled 
+[debug] [2025-08-02T14:12:40.600Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/storage.googleapis.com 200
+[debug] [2025-08-02T14:12:40.600Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/716617534132/services/storage.googleapis.com [omitted]
+[info] +  functions: required API storage.googleapis.com is enabled 
+[info] i  functions: generating the service identity for pubsub.googleapis.com... 
+[debug] [2025-08-02T14:12:40.603Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:40.603Z] Checked if tokens are valid: true, expires at: 1754146883795
+[info] i  functions: generating the service identity for eventarc.googleapis.com... 
+[debug] [2025-08-02T14:12:40.604Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:40.604Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:40.604Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1beta1/projects/716617534132/services/pubsub.googleapis.com:generateServiceIdentity [none]
+[debug] [2025-08-02T14:12:40.604Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1beta1/projects/716617534132/services/pubsub.googleapis.com:generateServiceIdentity x-goog-quota-user=projects/716617534132
+[debug] [2025-08-02T14:12:40.604Z] >>> [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/716617534132/services/pubsub.googleapis.com:generateServiceIdentity {}
+[debug] [2025-08-02T14:12:40.604Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1beta1/projects/716617534132/services/eventarc.googleapis.com:generateServiceIdentity [none]
+[debug] [2025-08-02T14:12:40.604Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1beta1/projects/716617534132/services/eventarc.googleapis.com:generateServiceIdentity x-goog-quota-user=projects/716617534132
+[debug] [2025-08-02T14:12:40.604Z] >>> [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/716617534132/services/eventarc.googleapis.com:generateServiceIdentity {}
+[debug] [2025-08-02T14:12:41.389Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1beta1/projects/716617534132/services/pubsub.googleapis.com:generateServiceIdentity 200
+[debug] [2025-08-02T14:12:41.389Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/716617534132/services/pubsub.googleapis.com:generateServiceIdentity {"name":"operations/finished.DONE_OPERATION","done":true,"response":{"@type":"type.googleapis.com/google.api.serviceusage.v1beta1.ServiceIdentity","email":"service-716617534132@gcp-sa-pubsub.iam.gserviceaccount.com","uniqueId":"116883067309492945999"}}
+[debug] [2025-08-02T14:12:41.480Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1beta1/projects/716617534132/services/eventarc.googleapis.com:generateServiceIdentity 200
+[debug] [2025-08-02T14:12:41.480Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/716617534132/services/eventarc.googleapis.com:generateServiceIdentity {"name":"operations/finished.DONE_OPERATION","done":true,"response":{"@type":"type.googleapis.com/google.api.serviceusage.v1beta1.ServiceIdentity","email":"service-716617534132@gcp-sa-eventarc.iam.gserviceaccount.com","uniqueId":"101523977154503136125"}}
+[debug] [2025-08-02T14:12:41.481Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:41.481Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:41.481Z] >>> [apiv2][query] GET https://compute.googleapis.com/compute/v1/projects/716617534132 [none]
+[debug] [2025-08-02T14:12:41.667Z] <<< [apiv2][status] GET https://compute.googleapis.com/compute/v1/projects/716617534132 403
+[debug] [2025-08-02T14:12:41.667Z] <<< [apiv2][body] GET https://compute.googleapis.com/compute/v1/projects/716617534132 {"error":{"code":403,"message":"Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","errors":[{"message":"Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","domain":"usageLimits","reason":"accessNotConfigured","extendedHelp":"https://console.developers.google.com"}],"status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"consumer":"projects/716617534132","activationUrl":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132","containerInfo":"716617534132","serviceTitle":"Compute Engine API","service":"compute.googleapis.com"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132"}]}]}}
+[debug] [2025-08-02T14:12:41.667Z] unable to look up default compute service account. Falling back to 716617534132-compute@developer.gserviceaccount.com. Error: {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":403,"message":"Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","errors":[{"message":"Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","domain":"usageLimits","reason":"accessNotConfigured","extendedHelp":"https://console.developers.google.com"}],"status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"consumer":"projects/716617534132","activationUrl":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132","containerInfo":"716617534132","serviceTitle":"Compute Engine API","service":"compute.googleapis.com"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132"}]}]}},"response":{"statusCode":403}},"exit":1,"message":"Request to https://compute.googleapis.com/compute/v1/projects/716617534132 had HTTP Error: 403, Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","status":403}
+[debug] [2025-08-02T14:12:41.667Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:41.667Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:41.667Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/716617534132:getIamPolicy [none]
+[debug] [2025-08-02T14:12:41.888Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/716617534132:getIamPolicy 200
+[debug] [2025-08-02T14:12:41.888Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/716617534132:getIamPolicy {"version":1,"etag":"BwY7YhS5sp0=","bindings":[{"role":"roles/artifactregistry.serviceAgent","members":["serviceAccount:service-716617534132@gcp-sa-artifactregistry.iam.gserviceaccount.com"]},{"role":"roles/cloudaicompanion.serviceAgent","members":["serviceAccount:service-716617534132@gcp-sa-cloudaicompanion.iam.gserviceaccount.com"]},{"role":"roles/cloudbuild.builds.builder","members":["serviceAccount:716617534132@cloudbuild.gserviceaccount.com"]},{"role":"roles/cloudbuild.serviceAgent","members":["serviceAccount:service-716617534132@gcp-sa-cloudbuild.iam.gserviceaccount.com"]},{"role":"roles/cloudfunctions.admin","members":["serviceAccount:firebase-adminsdk-fbsvc@besosporelmundo.iam.gserviceaccount.com"]},{"role":"roles/cloudfunctions.serviceAgent","members":["serviceAccount:service-716617534132@gcf-admin-robot.iam.gserviceaccount.com"]},{"role":"roles/containerregistry.ServiceAgent","members":["serviceAccount:service-716617534132@containerregistry.iam.gserviceaccount.com"]},{"role":"roles/editor","members":["serviceAccount:716617534132-compute@developer.gserviceaccount.com","serviceAccount:716617534132@cloudservices.gserviceaccount.com"]},{"role":"roles/eventarc.eventReceiver","members":["serviceAccount:716617534132-compute@developer.gserviceaccount.com"]},{"role":"roles/eventarc.serviceAgent","members":["serviceAccount:service-716617534132@gcp-sa-eventarc.iam.gserviceaccount.com"]},{"role":"roles/firebase.managementServiceAgent","members":["serviceAccount:service-716617534132@gcp-sa-firebase.iam.gserviceaccount.com"]},{"role":"roles/firebase.sdkAdminServiceAgent","members":["serviceAccount:firebase-adminsdk-fbsvc@besosporelmundo.iam.gserviceaccount.com"]},{"role":"roles/firebaseauth.admin","members":["serviceAccount:firebase-adminsdk-fbsvc@besosporelmundo.iam.gserviceaccount.com"]},{"role":"roles/firebasedatabase.admin","members":["serviceAccount:firebase-adminsdk-fbsvc@besosporelmundo.iam.gserviceaccount.com"]},{"role":"roles/firebasemods.serviceAgent","members":["serviceAccount:service-716617534132@gcp-sa-firebasemods.iam.gserviceaccount.com"]},{"role":"roles/firebaserules.system","members":["serviceAccount:service-716617534132@firebase-rules.iam.gserviceaccount.com"]},{"role":"roles/firebasestorage.serviceAgent","members":["serviceAccount:service-716617534132@gcp-sa-firebasestorage.iam.gserviceaccount.com"]},{"role":"roles/firestore.serviceAgent","members":["serviceAccount:service-716617534132@gcp-sa-firestore.iam.gserviceaccount.com"]},{"role":"roles/iam.serviceAccountTokenCreator","members":["serviceAccount:firebase-adminsdk-fbsvc@besosporelmundo.iam.gserviceaccount.com","serviceAccount:service-716617534132@gcp-sa-pubsub.iam.gserviceaccount.com"]},{"role":"roles/owner","members":["user:jesusocu@hotmail.com"]},{"role":"roles/run.invoker","members":["serviceAccount:716617534132-compute@developer.gserviceaccount.com"]},{"role":"roles/run.serviceAgent","members":["serviceAccount:service-716617534132@serverless-robot-prod.iam.gserviceaccount.com"]},{"role":"roles/storage.admin","members":["serviceAccount:firebase-adminsdk-fbsvc@besosporelmundo.iam.gserviceaccount.com"]}]}
+[debug] [2025-08-02T14:12:41.889Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:41.889Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:41.889Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo [none]
+[debug] [2025-08-02T14:12:42.290Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo 200
+[debug] [2025-08-02T14:12:42.290Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/besosporelmundo {"projectNumber":"716617534132","projectId":"besosporelmundo","lifecycleState":"ACTIVE","name":"Besosporelmundo","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-01-22T12:14:29.390651Z"}
+[debug] [2025-08-02T14:12:42.290Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:42.290Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:42.290Z] >>> [apiv2][query] GET https://compute.googleapis.com/compute/v1/projects/716617534132 [none]
+[debug] [2025-08-02T14:12:42.421Z] <<< [apiv2][status] GET https://compute.googleapis.com/compute/v1/projects/716617534132 403
+[debug] [2025-08-02T14:12:42.421Z] <<< [apiv2][body] GET https://compute.googleapis.com/compute/v1/projects/716617534132 {"error":{"code":403,"message":"Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","errors":[{"message":"Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","domain":"usageLimits","reason":"accessNotConfigured","extendedHelp":"https://console.developers.google.com"}],"status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"consumer":"projects/716617534132","activationUrl":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132","containerInfo":"716617534132","serviceTitle":"Compute Engine API","service":"compute.googleapis.com"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132"}]}]}}
+[debug] [2025-08-02T14:12:42.421Z] unable to look up default compute service account. Falling back to 716617534132-compute@developer.gserviceaccount.com. Error: {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":403,"message":"Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","errors":[{"message":"Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","domain":"usageLimits","reason":"accessNotConfigured","extendedHelp":"https://console.developers.google.com"}],"status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"consumer":"projects/716617534132","activationUrl":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132","containerInfo":"716617534132","serviceTitle":"Compute Engine API","service":"compute.googleapis.com"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132"}]}]}},"response":{"statusCode":403}},"exit":1,"message":"Request to https://compute.googleapis.com/compute/v1/projects/716617534132 had HTTP Error: 403, Compute Engine API has not been used in project 716617534132 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=716617534132 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","status":403}
+[debug] [2025-08-02T14:12:42.422Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:42.422Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:42.422Z] >>> [apiv2][query] GET https://cloudbilling.googleapis.com/v1/projects/besosporelmundo/billingInfo [none]
+[debug] [2025-08-02T14:12:43.102Z] <<< [apiv2][status] GET https://cloudbilling.googleapis.com/v1/projects/besosporelmundo/billingInfo 200
+[debug] [2025-08-02T14:12:43.102Z] <<< [apiv2][body] GET https://cloudbilling.googleapis.com/v1/projects/besosporelmundo/billingInfo {"name":"projects/besosporelmundo/billingInfo","projectId":"besosporelmundo","billingAccountName":"billingAccounts/010EC2-3B4587-20EA2D","billingEnabled":true}
+[debug] [2025-08-02T14:12:43.103Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:43.103Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:43.103Z] >>> [apiv2][query] POST https://cloudfunctions.googleapis.com/v2/projects/besosporelmundo/locations/us-central1/functions:generateUploadUrl [none]
+[debug] [2025-08-02T14:12:43.869Z] <<< [apiv2][status] POST https://cloudfunctions.googleapis.com/v2/projects/besosporelmundo/locations/us-central1/functions:generateUploadUrl 200
+[debug] [2025-08-02T14:12:43.869Z] <<< [apiv2][body] POST https://cloudfunctions.googleapis.com/v2/projects/besosporelmundo/locations/us-central1/functions:generateUploadUrl {"uploadUrl":"https://storage.googleapis.com/gcf-v2-uploads-716617534132.us-central1.cloudfunctions.appspot.com/3615cf40-5ba7-45d1-95a3-34e4a841a438.zip?GoogleAccessId=service-716617534132@gcf-admin-robot.iam.gserviceaccount.com&Expires=1754145766&Signature=BtxeeESHgsh%2F5NVaJaNyO6eFGrE170WYNTbLfmMiBzPyDBkxAltKwaulXeZRLU2%2B%2FTjWdhef3%2BXZB%2BMXN2YwvBCzEce64hNQ1vcLsatYcw4lc28nPldl4TBYTflVUWwD3n75pOE%2BTMJANKaNRmKvMhrS6RE8MKek6kcpGhmDRMJhmAB8GpjZv1kII7pXe8g383DdhZ8Y69APc8aaiGNaHmwEU2OeMnqZN9LhBmHImV5n3%2BDl3aQt7aPgvXCSZUlWP%2BLIzU8tDl%2FLD8wSwzMk1RwgxnIiRNIWyxRvG9YhtBlys41HsjeLUSHUdJqnDZ9JAE49bAdNY4eGqnGZb1AFrA%3D%3D","storageSource":{"bucket":"gcf-v2-uploads-716617534132.us-central1.cloudfunctions.appspot.com","object":"3615cf40-5ba7-45d1-95a3-34e4a841a438.zip"}}
+[debug] [2025-08-02T14:12:43.869Z] >>> [apiv2][query] PUT https://storage.googleapis.com/gcf-v2-uploads-716617534132.us-central1.cloudfunctions.appspot.com/3615cf40-5ba7-45d1-95a3-34e4a841a438.zip GoogleAccessId=service-716617534132%40gcf-admin-robot.iam.gserviceaccount.com&Expires=1754145766&Signature=BtxeeESHgsh%2F5NVaJaNyO6eFGrE170WYNTbLfmMiBzPyDBkxAltKwaulXeZRLU2%2B%2FTjWdhef3%2BXZB%2BMXN2YwvBCzEce64hNQ1vcLsatYcw4lc28nPldl4TBYTflVUWwD3n75pOE%2BTMJANKaNRmKvMhrS6RE8MKek6kcpGhmDRMJhmAB8GpjZv1kII7pXe8g383DdhZ8Y69APc8aaiGNaHmwEU2OeMnqZN9LhBmHImV5n3%2BDl3aQt7aPgvXCSZUlWP%2BLIzU8tDl%2FLD8wSwzMk1RwgxnIiRNIWyxRvG9YhtBlys41HsjeLUSHUdJqnDZ9JAE49bAdNY4eGqnGZb1AFrA%3D%3D
+[debug] [2025-08-02T14:12:43.869Z] >>> [apiv2][body] PUT https://storage.googleapis.com/gcf-v2-uploads-716617534132.us-central1.cloudfunctions.appspot.com/3615cf40-5ba7-45d1-95a3-34e4a841a438.zip [stream]
+[debug] [2025-08-02T14:12:44.311Z] <<< [apiv2][status] PUT https://storage.googleapis.com/gcf-v2-uploads-716617534132.us-central1.cloudfunctions.appspot.com/3615cf40-5ba7-45d1-95a3-34e4a841a438.zip 200
+[debug] [2025-08-02T14:12:44.311Z] <<< [apiv2][body] PUT https://storage.googleapis.com/gcf-v2-uploads-716617534132.us-central1.cloudfunctions.appspot.com/3615cf40-5ba7-45d1-95a3-34e4a841a438.zip [omitted]
+[info] +  functions: functions folder uploaded successfully 
+[info] i  functions: creating Node.js 18 (2nd Gen) function sendMarkerNotification(us-central1)... 
+[debug] [2025-08-02T14:12:44.314Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:44.314Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:44.314Z] >>> [apiv2][query] POST https://cloudfunctions.googleapis.com/v2/projects/besosporelmundo/locations/us-central1/functions functionId=sendMarkerNotification
+[debug] [2025-08-02T14:12:44.315Z] >>> [apiv2][body] POST https://cloudfunctions.googleapis.com/v2/projects/besosporelmundo/locations/us-central1/functions {"name":"projects/besosporelmundo/locations/us-central1/functions/sendMarkerNotification","buildConfig":{"runtime":"nodejs18","entryPoint":"sendMarkerNotification","source":{"storageSource":{"bucket":"gcf-v2-uploads-716617534132.us-central1.cloudfunctions.appspot.com","object":"3615cf40-5ba7-45d1-95a3-34e4a841a438.zip"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""}},"serviceConfig":{"environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"besosporelmundo\",\"databaseURL\":\"https://besosporelmundo-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"besosporelmundo.firebasestorage.app\"}","GCLOUD_PROJECT":"besosporelmundo","EVENTARC_CLOUD_EVENT_SOURCE":"projects/besosporelmundo/locations/us-central1/services/sendMarkerNotification","FUNCTION_SIGNATURE_TYPE":"cloudevent","FUNCTION_TARGET":"sendMarkerNotification","LOG_EXECUTION_ID":"true"},"ingressSettings":null,"timeoutSeconds":null,"serviceAccountEmail":null,"availableMemory":"256Mi","minInstanceCount":null,"maxInstanceCount":null,"maxInstanceRequestConcurrency":80,"availableCpu":"1","vpcConnector":null,"vpcConnectorEgressSettings":null},"labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"bee5233cea55e0124fac914b365d415de7dd4166"},"eventTrigger":{"eventType":"google.firebase.database.ref.v1.created","retryPolicy":"RETRY_POLICY_DO_NOT_RETRY","eventFilters":[{"attribute":"ref","value":"markers/{markerId}","operator":"match-path-pattern"},{"attribute":"instance","value":"*","operator":"match-path-pattern"}],"triggerRegion":"us-central1"}}
+[debug] [2025-08-02T14:12:46.016Z] <<< [apiv2][status] POST https://cloudfunctions.googleapis.com/v2/projects/besosporelmundo/locations/us-central1/functions 400
+[debug] [2025-08-02T14:12:46.017Z] <<< [apiv2][body] POST https://cloudfunctions.googleapis.com/v2/projects/besosporelmundo/locations/us-central1/functions {"error":{"code":400,"message":"Validation failed for trigger projects/besosporelmundo/locations/us-central1/triggers/sendmarkernotification-786248: The request was invalid: generic::not_found: pattern cannot match any databases in region us-central1: invalid argument","status":"INVALID_ARGUMENT"}}
+[warn] !  functions: Request to https://cloudfunctions.googleapis.com/v2/projects/besosporelmundo/locations/us-central1/functions?functionId=sendMarkerNotification had HTTP Error: 400, Validation failed for trigger projects/besosporelmundo/locations/us-central1/triggers/sendmarkernotification-786248: The request was invalid: generic::not_found: pattern cannot match any databases in region us-central1: invalid argument 
+[warn] !  functions:  failed to create function projects/besosporelmundo/locations/us-central1/functions/sendMarkerNotification 
+[error] Failed to create function projects/besosporelmundo/locations/us-central1/functions/sendMarkerNotification
+[debug] [2025-08-02T14:12:46.019Z] Total Function Deployment time: 1705
+[debug] [2025-08-02T14:12:46.019Z] 1 Functions Deployed
+[debug] [2025-08-02T14:12:46.019Z] 1 Functions Errored
+[debug] [2025-08-02T14:12:46.019Z] 0 Function Deployments Aborted
+[debug] [2025-08-02T14:12:46.019Z] Average Function Deployment time: 1704
+[info] 
+[info] Functions deploy had errors with the following functions:
+	sendMarkerNotification(us-central1)
+[debug] [2025-08-02T14:12:46.021Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:46.021Z] Checked if tokens are valid: true, expires at: 1754146883795
+[debug] [2025-08-02T14:12:46.022Z] >>> [apiv2][query] GET https://artifactregistry.googleapis.com/v1/projects/besosporelmundo/locations/us-central1/repositories/gcf-artifacts [none]
+[debug] [2025-08-02T14:12:46.771Z] <<< [apiv2][status] GET https://artifactregistry.googleapis.com/v1/projects/besosporelmundo/locations/us-central1/repositories/gcf-artifacts 404
+[debug] [2025-08-02T14:12:46.771Z] <<< [apiv2][body] GET https://artifactregistry.googleapis.com/v1/projects/besosporelmundo/locations/us-central1/repositories/gcf-artifacts {"error":{"code":404,"message":"Requested entity was not found.","status":"NOT_FOUND"}}
+[debug] [2025-08-02T14:12:46.771Z] Failed to check artifact cleanup policy for region us-central1: Request to https://artifactregistry.googleapis.com/v1/projects/besosporelmundo/locations/us-central1/repositories/gcf-artifacts had HTTP Error: 404, Requested entity was not found. {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":404,"message":"Requested entity was not found.","status":"NOT_FOUND"}},"response":{"statusCode":404}},"exit":1,"message":"Request to https://artifactregistry.googleapis.com/v1/projects/besosporelmundo/locations/us-central1/repositories/gcf-artifacts had HTTP Error: 404, Requested entity was not found.","status":404}
+[debug] [2025-08-02T14:12:46.771Z] Functions deploy failed.
+[debug] [2025-08-02T14:12:46.771Z] {
+  "endpoint": {
+    "id": "sendMarkerNotification",
+    "project": "besosporelmundo",
+    "region": "us-central1",
+    "entryPoint": "sendMarkerNotification",
+    "platform": "gcfv2",
+    "runtime": "nodejs18",
+    "eventTrigger": {
+      "eventType": "google.firebase.database.ref.v1.created",
+      "retry": false,
+      "eventFilters": {},
+      "eventFilterPathPatterns": {
+        "ref": "markers/{markerId}",
+        "instance": "*"
+      },
+      "region": "us-central1"
+    },
+    "labels": {
+      "deployment-tool": "cli-firebase"
+    },
+    "serviceAccount": null,
+    "ingressSettings": null,
+    "availableMemoryMb": null,
+    "timeoutSeconds": null,
+    "maxInstances": null,
+    "minInstances": null,
+    "concurrency": 80,
+    "vpc": null,
+    "environmentVariables": {
+      "FIREBASE_CONFIG": "{\"projectId\":\"besosporelmundo\",\"databaseURL\":\"https://besosporelmundo-default-rtdb.europe-west1.firebasedatabase.app\",\"storageBucket\":\"besosporelmundo.firebasestorage.app\"}",
+      "GCLOUD_PROJECT": "besosporelmundo",
+      "EVENTARC_CLOUD_EVENT_SOURCE": "projects/besosporelmundo/locations/us-central1/services/sendMarkerNotification"
+    },
+    "codebase": "default",
+    "cpu": 1,
+    "targetedByOnly": false,
+    "hash": "bee5233cea55e0124fac914b365d415de7dd4166"
+  },
+  "op": "create",
+  "original": {
+    "name": "FirebaseError",
+    "children": [],
+    "context": {
+      "function": "projects/besosporelmundo/locations/us-central1/functions/sendMarkerNotification"
+    },
+    "exit": 1,
+    "message": "Failed to create function projects/besosporelmundo/locations/us-central1/functions/sendMarkerNotification",
+    "original": {
+      "name": "FirebaseError",
+      "children": [],
+      "context": {
+        "body": {
+          "error": {
+            "code": 400,
+            "message": "Validation failed for trigger projects/besosporelmundo/locations/us-central1/triggers/sendmarkernotification-786248: The request was invalid: generic::not_found: pattern cannot match any databases in region us-central1: invalid argument",
+            "status": "INVALID_ARGUMENT"
+          }
+        },
+        "response": {
+          "statusCode": 400
+        }
+      },
+      "exit": 1,
+      "message": "Request to https://cloudfunctions.googleapis.com/v2/projects/besosporelmundo/locations/us-central1/functions?functionId=sendMarkerNotification had HTTP Error: 400, Validation failed for trigger projects/besosporelmundo/locations/us-central1/triggers/sendmarkernotification-786248: The request was invalid: generic::not_found: pattern cannot match any databases in region us-central1: invalid argument",
+      "status": 400
+    },
+    "status": 400,
+    "code": 400
+  }
+}
+[debug] [2025-08-02T14:12:46.772Z] Error: Failed to create function sendMarkerNotification in region us-central1
+    at C:\Users\jesus\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\release\fabricator.js:294:27
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Fabricator.createV2Function (C:\Users\jesus\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\release\fabricator.js:278:30)
+    at async Fabricator.createEndpoint (C:\Users\jesus\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\release\fabricator.js:137:13)
+    at async handle (C:\Users\jesus\AppData\Roaming\npm\node_modules\firebase-tools\lib\deploy\functions\release\fabricator.js:89:17)
+[error] 
+[error] Error: There was an error deploying functions
