@@ -1,14 +1,20 @@
 package com.besos.bpm
 
+import android.Manifest
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.core.app.ActivityCompat
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.messaging.FirebaseMessaging
+import android.util.Log
 
 class MainActivity : AppCompatActivity() {
 
@@ -16,11 +22,23 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Configura el Toolbar personalizado
+        // 🔔 Crear canal de notificación para Android 8+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = android.app.NotificationChannel(
+                "besos_channel", // ID del canal
+                "Notificaciones románticas 💌", // Nombre visible en ajustes
+                android.app.NotificationManager.IMPORTANCE_HIGH // Prioridad alta
+            ).apply {
+                description = "Mensajes de Polaroids y nuevos besos"
+            }
+
+            val notificationManager = getSystemService(android.app.NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
+
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
 
-        // Configurar botones de imagen "Mapa" y "Feed"
         val btnMapa = findViewById<ImageButton>(R.id.btnMapa)
         val btnFeed = findViewById<ImageButton>(R.id.btnFeed)
 
@@ -28,46 +46,67 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, MapFragment())
                 .commit()
-            invalidateOptionsMenu() // Actualiza el menú cuando cambia el fragmento
+            invalidateOptionsMenu()
         }
 
         btnFeed.setOnClickListener {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, FeedFragment())
                 .commit()
-            invalidateOptionsMenu() // Actualiza el menú cuando cambia el fragmento
+            invalidateOptionsMenu()
         }
 
-        // Cargar el fragmento de mapa por defecto
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, MapFragment())
                 .commit()
         }
+
+        // Pedir permiso de notificaciones si Android >= 13
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                101
+            )
+        }
+
+        // 📲 Obtener el token FCM y guardarlo en Realtime Database
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                val uid = FirebaseAuth.getInstance().currentUser?.uid
+
+                if (uid != null) {
+                    val ref = FirebaseDatabase.getInstance().getReference("users/$uid/fcmToken")
+                    ref.setValue(token)
+                        .addOnSuccessListener {
+                            // Eliminado: No mostrar mensaje
+                        }
+                        .addOnFailureListener {
+                            // Opcional: Puedes loguear el error si lo deseas
+                             Log.e("FCM", "Error al guardar token", it)
+                        }
+                }
+            } else {
+                // Opcional: Puedes registrar el fallo si necesitas depurarlo
+                // Log.w("FCM", "No se pudo obtener el token", task.exception)
+            }
+        }
     }
 
-    // Infla el menú del Toolbar (toolbar_menu.xml)
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.toolbar_menu, menu)
         return true
     }
 
-    // Maneja la acción del botón de Log Out y ajusta la visibilidad del menú
     override fun onPrepareOptionsMenu(menu: Menu): Boolean {
         val currentFragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
-
-        // Controlar la visibilidad del botón de filtro según el fragmento
         val filterMenuItem = menu.findItem(R.id.action_filter_menu)
-        if (currentFragment is FeedFragment) {
-            filterMenuItem?.isVisible = true // Mostrar el botón de filtro en FeedFragment
-        } else {
-            filterMenuItem?.isVisible = false // Ocultar el botón de filtro en otros fragmentos
-        }
 
-        // Limpiar el menú antes de inflar uno nuevo
+        filterMenuItem?.isVisible = currentFragment is FeedFragment
         menu.clear()
 
-        // Inflar el menú correspondiente al fragmento actual
         when (currentFragment) {
             is MapFragment -> menuInflater.inflate(R.menu.map_toolbar_menu, menu)
             is FeedFragment -> menuInflater.inflate(R.menu.toolbar_menu, menu)
@@ -76,11 +115,9 @@ class MainActivity : AppCompatActivity() {
         return super.onPrepareOptionsMenu(menu)
     }
 
-    // Maneja la acción del botón de Log Out en el Toolbar
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_logout -> {
-                // Cerrar sesión de Firebase
                 FirebaseAuth.getInstance().signOut()
                 Toast.makeText(this, "Sesión cerrada", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, LoginActivity::class.java)

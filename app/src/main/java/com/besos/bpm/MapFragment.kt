@@ -34,6 +34,7 @@ import android.os.Looper
 import retrofit2.Call
 import android.app.*
 import com.yalantis.ucrop.UCrop
+import com.google.firebase.auth.FirebaseAuth
 
 class MapFragment : Fragment(R.layout.map_fragment) {
 
@@ -443,7 +444,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             .addOnSuccessListener { taskSnapshot ->
                 taskSnapshot.storage.downloadUrl.addOnSuccessListener { uri ->
                     val imageUrl = uri.toString()
-                    // Redondear latitud y longitud a 6 decimales antes de guardar
                     val roundedLat = String.format(Locale.US, "%.6f", latitude).toDouble()
                     val roundedLng = String.format(Locale.US, "%.6f", longitude).toDouble()
                     saveNewMarker(roundedLat, roundedLng, date, description, imageUrl)
@@ -468,7 +468,9 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         imageUrl: String
     ) {
         progressDialog.setMessage("Obteniendo ubicación...")
-        // Llamar al servicio de Nominatim
+
+        val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
+
         RetrofitClient.instance.getReverseGeocode(latitude, longitude).enqueue(object :
             retrofit2.Callback<NominatimResponse> {
             override fun onResponse(call: Call<NominatimResponse>, response: retrofit2.Response<NominatimResponse>) {
@@ -477,7 +479,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                     val city = address?.city ?: address?.town ?: address?.village
                     val country = address?.country
 
-                    // Generar una clave única para el nuevo marcador
                     val newMarkerKey = databaseReference.push().key
                     if (newMarkerKey == null) {
                         Log.e("Firebase", "Error al generar una clave para el marcador")
@@ -486,15 +487,16 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                         return
                     }
 
-                    // Guardar el marcador con la ciudad y el país
                     val markerData = mapOf(
                         "latlng" to mapOf("lat" to latitude, "lng" to longitude),
                         "date" to date,
                         "description" to description,
                         "image" to imageUrl,
                         "city" to city,
-                        "country" to country
+                        "country" to country,
+                        "creatorUid" to currentUserUid
                     )
+
                     databaseReference.child(newMarkerKey).setValue(markerData)
                         .addOnSuccessListener {
                             Log.d("Marcador", "Marcador guardado correctamente")
