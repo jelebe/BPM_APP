@@ -19,9 +19,10 @@ HECHO 1.4.1 Cambios en Firebase. Añadimos ciudad y país para poder filtrar.
 
 HECHO 1.4.2 Filtro en el FeedFragment:  Añade opciones para filtrar los marcadores por fecha, ubicación o descripción en el FeedFragment.
 
+HECHO 1.4.3 Cambiar la relación de aspecto de la imagen: Ahora se selecciona qué parte de la foto se sube para que quede todo dentro de la polariod.
+
 
 1.5.1 Zoom inicial dinámico:  En lugar de centrar siempre en Madrid, detecta la ubicación del usuario (si está disponible) y ajusta el zoom inicial según su posición.
-
 
 
 1.6.1 Edición/eliminación de marcadores:  Permite a los usuarios editar o eliminar sus propios marcadores después de crearlos.
