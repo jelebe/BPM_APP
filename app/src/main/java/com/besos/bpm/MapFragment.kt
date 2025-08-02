@@ -32,6 +32,8 @@ import android.text.InputType
 import android.os.Handler
 import android.os.Looper
 import retrofit2.Call
+import android.app.*
+import com.yalantis.ucrop.UCrop
 
 class MapFragment : Fragment(R.layout.map_fragment) {
 
@@ -53,7 +55,21 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     private var selectLocationDialog: AlertDialog? = null
     private lateinit var progressDialog: ProgressDialog
 
-    // Launcher para seleccionar imágenes
+
+    //  UCrop launcher
+    private val cropLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val resultUri = UCrop.getOutput(result.data!!)
+            selectedImageUri = resultUri
+            currentCreateMarkerDialogView?.findViewById<ImageView>(R.id.imagePreview)?.let { imageView ->
+                Glide.with(this).load(resultUri).into(imageView)
+            }
+        } else {
+            Toast.makeText(context, "Recorte cancelado", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // 📸 Selección desde galería
     private val selectImageLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -67,10 +83,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                     return@registerForActivityResult
                 }
             }
-            selectedImageUri = uri
-            currentCreateMarkerDialogView?.findViewById<ImageView>(R.id.imagePreview)?.let { imageView ->
-                Glide.with(this).load(uri).into(imageView)
-            }
+            startCrop(uri)
         } else {
             Toast.makeText(context, "No se seleccionó ninguna imagen", Toast.LENGTH_SHORT).show()
         }
@@ -83,18 +96,20 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         if (bitmap != null) {
             // Convertir el Bitmap a Uri
             val uri = bitmapToUri(bitmap)
-            selectedImageUri = uri
-
-            // Mostrar la vista previa de la imagen
-            currentCreateMarkerDialogView?.findViewById<ImageView>(R.id.imagePreview)?.let { imageView ->
-                Glide.with(this).load(uri).into(imageView)
-            }
+            startCrop(uri)
         } else {
             Toast.makeText(context, "No se tomó ninguna foto", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // Función auxiliar para convertir un Bitmap a Uri
+    private fun startCrop(uri: Uri) {
+        val destinationUri = Uri.fromFile(File(requireContext().cacheDir, "cropped.jpg"))
+        val uCrop = UCrop.of(uri, destinationUri)
+            .withAspectRatio(7f, 6f)
+            .withMaxResultSize(1400, 1200)
+        cropLauncher.launch(uCrop.getIntent(requireContext()))
+    }
+
     private fun bitmapToUri(bitmap: Bitmap): Uri {
         val file = File.createTempFile("temp_image", ".jpg", context?.cacheDir)
         file.outputStream().use { outputStream ->
@@ -273,7 +288,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             .load(imageUrl)
             .placeholder(R.drawable.ic_placeholder_image)
             .error(R.drawable.ic_placeholder_image)
-            .into(dialogView.findViewById(R.id.markerImage))
+            .into(dialogView.findViewById(R.id.marker_image))
         val dialog = builder.setView(dialogView).create()
         dialog.show()
     }

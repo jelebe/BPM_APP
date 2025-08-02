@@ -44,6 +44,12 @@
             android:exported="false"
             android:label="@string/app_name" />
 
+        <!-- Actividad recorte imagen -->
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+
 
     </application>
 
