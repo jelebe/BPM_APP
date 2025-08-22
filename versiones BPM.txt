@@ -21,6 +21,7 @@ HECHO 1.4.2 Filtro en el FeedFragment:  Añade opciones para filtrar los marcado
 
 HECHO 1.4.3 Cambiar la relación de aspecto de la imagen: Ahora se selecciona qué parte de la foto se sube para que quede todo dentro de la polariod.
 
+1.4.4  Clusterización de marcadores:  Si hay muchos marcadores cercanos, considera agruparlos usando una librería de clusterización para evitar saturar el mapa.
 
 1.5.1 Notificaciones push:  Implementa notificaciones para informar a los usuarios sobre nuevos marcadores o actualizaciones.
 

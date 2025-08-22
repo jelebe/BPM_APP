@@ -15,8 +15,8 @@ android {
         applicationId = "com.besos.bpm"
         minSdk = 29
         targetSdk = 35
-        versionCode = 42
-        versionName = "1.4.3"
+        versionCode = 44
+        versionName = "1.4.4"
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -101,5 +101,7 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0") // Obtener País y Ciudad
     implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Obtener País y Ciudad
 
+    implementation("com.github.MKergall:osmbonuspack:6.9.0") // Clustering de marcadores
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
 }

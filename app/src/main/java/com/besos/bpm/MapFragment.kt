@@ -1,40 +1,46 @@
 package com.besos.bpm
 
+import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.ProgressDialog
-import android.graphics.Bitmap
+import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.InputType
 import android.util.Log
 import android.view.*
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import androidx.activity.result.contract.ActivityResultContracts
 import com.bumptech.glide.Glide
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.yalantis.ucrop.UCrop
 import org.osmdroid.config.Configuration
 import org.osmdroid.events.DelayedMapListener
+import org.osmdroid.events.MapAdapter
+import org.osmdroid.events.ScrollEvent
 import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
+import retrofit2.Call
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import android.text.InputType
-import android.os.Handler
-import android.os.Looper
-import retrofit2.Call
-import android.app.*
-import com.yalantis.ucrop.UCrop
-import com.google.firebase.auth.FirebaseAuth
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 class MapFragment : Fragment(R.layout.map_fragment) {
 
@@ -46,8 +52,13 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     private lateinit var databaseReference: DatabaseReference
     private lateinit var storageReference: StorageReference
 
-    // Lista de marcadores para el mapa
-    private val markerList = mutableListOf<Marker>()
+    // Listas para gestión de marcadores
+    private val allMarkers = mutableListOf<MarkerData>()
+    private val visibleMarkers = mutableListOf<Marker>()
+    private val clusterMarkers = mutableListOf<Marker>()
+
+    // Variables para el estado actual
+    private var currentZoomLevel = 14.0
 
     // Variables para manejo de imágenes y diálogos
     private var selectedImageUri: Uri? = null
@@ -56,8 +67,16 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     private var selectLocationDialog: AlertDialog? = null
     private lateinit var progressDialog: ProgressDialog
 
+    // Data class para almacenar información de marcadores
+    data class MarkerData(
+        val latitude: Double,
+        val longitude: Double,
+        val date: String,
+        val description: String,
+        val imageUrl: String
+    )
 
-    //  UCrop launcher
+    // UCrop launcher
     private val cropLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val resultUri = UCrop.getOutput(result.data!!)
@@ -75,7 +94,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
-            // Verificar el tamaño de la imagen antes de proceder
             context?.contentResolver?.openInputStream(uri)?.use { inputStream ->
                 val fileSizeInBytes = inputStream.available()
                 val fileSizeInMB = fileSizeInBytes / (1024 * 1024).toDouble()
@@ -95,7 +113,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
         if (bitmap != null) {
-            // Convertir el Bitmap a Uri
             val uri = bitmapToUri(bitmap)
             startCrop(uri)
         } else {
@@ -154,13 +171,29 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         // Cargar los marcadores desde Firebase
         loadMarkersFromDatabase()
 
-        // Actualizar los marcadores al cambiar el zoom del mapa (con un delay de 1s)
-        mapView.addMapListener(DelayedMapListener(object : org.osmdroid.events.MapAdapter() {
+        // Actualizar los marcadores al cambiar el zoom del mapa con delay de 150ms
+        mapView.addMapListener(DelayedMapListener(object : MapAdapter() {
             override fun onZoom(event: ZoomEvent?): Boolean {
-                reloadMarkers()
+                val newZoom = event?.zoomLevel ?: mapView.zoomLevelDouble
+                if (newZoom != currentZoomLevel) {
+                    currentZoomLevel = newZoom
+                    Log.d("MapZoom", "Nivel de zoom cambiado: $currentZoomLevel")
+                    updateMapDisplay()
+                }
                 return true
             }
-        }, 1000))
+
+            override fun onScroll(event: ScrollEvent?): Boolean {
+                // Solo actualizar si el zoom ha cambiado durante el desplazamiento
+                val newZoom = mapView.zoomLevelDouble
+                if (newZoom != currentZoomLevel) {
+                    currentZoomLevel = newZoom
+                    Log.d("MapZoom", "Nivel de zoom actualizado durante desplazamiento: $currentZoomLevel")
+                    updateMapDisplay()
+                }
+                return true
+            }
+        }, 150))
 
         // Al pulsar el botón flotante se muestra el diálogo para seleccionar ubicación
         createMarkerButton.setOnClickListener { showSelectLocationDialog() }
@@ -169,7 +202,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         arguments?.let { args ->
             val latitude = args.getDouble("latitude")
             val longitude = args.getDouble("longitude")
-            Log.d("MapFragment", "Highlighting marker at lat: $latitude, lng: $longitude")
             if (latitude != 0.0 && longitude != 0.0) {
                 highlightMarkerOnMap(latitude, longitude)
             }
@@ -188,19 +220,22 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     private fun loadMarkersFromDatabase() {
         databaseReference.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                allMarkers.clear()
+
                 for (markerSnapshot in snapshot.children) {
-                    val lat = markerSnapshot.child("latlng/lat").getValue(Double::class.java)
-                    val lng = markerSnapshot.child("latlng/lng").getValue(Double::class.java)
-                    val date = markerSnapshot.child("date").getValue(String::class.java) ?: "Sin fecha"
-                    val description = markerSnapshot.child("description").getValue(String::class.java) ?: "Sin descripción"
                     val imageUrl = markerSnapshot.child("image").getValue(String::class.java) ?: ""
-                    if (lat != null && lng != null) {
-                        // Redondear latitud y longitud a 6 decimales
-                        val roundedLat = String.format(Locale.US, "%.6f", lat).toDouble()
-                        val roundedLng = String.format(Locale.US, "%.6f", lng).toDouble()
-                        addMarker(roundedLat, roundedLng, date, description, imageUrl)
+                    val description = markerSnapshot.child("description").getValue(String::class.java) ?: ""
+                    val date = markerSnapshot.child("date").getValue(String::class.java) ?: ""
+                    val lat = markerSnapshot.child("latlng/lat").getValue(Double::class.java) ?: 0.0
+                    val lng = markerSnapshot.child("latlng/lng").getValue(Double::class.java) ?: 0.0
+
+                    if (imageUrl.isNotEmpty()) {
+                        allMarkers.add(MarkerData(lat, lng, date, description, imageUrl))
                     }
                 }
+
+                Log.d("MapFragment", "Cargados ${allMarkers.size} marcadores desde Firebase")
+                updateMapDisplay()
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -209,73 +244,221 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         })
     }
 
-    // Recarga los marcadores al actualizar el zoom u otros cambios
-    private fun reloadMarkers() {
-        databaseReference.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                updateMarkers(snapshot)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("Firebase", "Error al actualizar datos: ${error.message}")
-            }
-        })
-    }
-
-    // Actualiza los marcadores existentes o agrega nuevos según lo recibido de Firebase
-    private fun updateMarkers(snapshot: DataSnapshot) {
-        val currentMarkersMap = markerList.associateBy { Pair(it.position.latitude, it.position.longitude) }
-        val newMarkersList = mutableListOf<Marker>()
-        for (markerSnapshot in snapshot.children) {
-            val lat = markerSnapshot.child("latlng/lat").getValue(Double::class.java)
-            val lng = markerSnapshot.child("latlng/lng").getValue(Double::class.java)
-            val date = markerSnapshot.child("date").getValue(String::class.java) ?: "Sin fecha"
-            val description = markerSnapshot.child("description").getValue(String::class.java) ?: "Sin descripción"
-            val imageUrl = markerSnapshot.child("image").getValue(String::class.java) ?: ""
-            if (lat != null && lng != null) {
-                // Redondear latitud y longitud a 6 decimales
-                val roundedLat = String.format(Locale.US, "%.6f", lat).toDouble()
-                val roundedLng = String.format(Locale.US, "%.6f", lng).toDouble()
-                val key = Pair(roundedLat, roundedLng)
-                val existingMarker = currentMarkersMap[key]
-                if (existingMarker != null) {
-                    existingMarker.title = description
-                    existingMarker.snippet = date
-                    newMarkersList.add(existingMarker)
-                } else {
-                    addMarker(roundedLat, roundedLng, date, description, imageUrl)
-                }
-            }
+    // Actualizar la visualización del mapa basado en el zoom y posición actual
+    private fun updateMapDisplay() {
+        val actualZoom = mapView.zoomLevelDouble
+        if (actualZoom != currentZoomLevel) {
+            currentZoomLevel = actualZoom
         }
-        val markersToRemove = markerList.filter { it !in newMarkersList }
-        markersToRemove.forEach { mapView.overlays.remove(it) }
-        markerList.clear()
-        markerList.addAll(newMarkersList)
+
+        // Limpiar marcadores existentes de manera más eficiente
+        mapView.overlays.removeAll(visibleMarkers)
+        visibleMarkers.clear()
+        mapView.overlays.removeAll(clusterMarkers)
+        clusterMarkers.clear()
+
+        // Calcular el área visible actual con optimización
+        val boundingBox = mapView.boundingBox
+        val visibleMarkersData = allMarkers.filter { marker ->
+            boundingBox.contains(GeoPoint(marker.latitude, marker.longitude))
+        }
+
+        Log.d("MapDisplay", "Zoom: $currentZoomLevel, " +
+                "Marcadores visibles: ${visibleMarkersData.size}")
+
+        // Mostrar clusters en zoom bajo, marcadores individuales en zoom alto
+        if (currentZoomLevel >= 14) {
+            showIndividualMarkers(visibleMarkersData)
+        } else {
+            showClusters(visibleMarkersData)
+        }
+
         mapView.invalidate()
     }
 
-    // Agrega un marcador al mapa y a la lista global
-    private fun addMarker(latitude: Double, longitude: Double, date: String, description: String, imageUrl: String) {
-        val geoPoint = GeoPoint(latitude, longitude)
-        val marker = Marker(mapView).apply {
-            position = geoPoint
-            setAnchor(Marker.ANCHOR_TOP, Marker.ANCHOR_CENTER)
+    // Mostrar marcadores individuales con optimizaciones de rendimiento
+    private fun showIndividualMarkers(markersData: List<MarkerData>) {
+        // Limitar la cantidad de marcadores para mejorar rendimiento
+        val maxMarkersToShow = 50
+        val markersToShow = if (markersData.size > maxMarkersToShow) {
+            Log.d("Performance", "Demasiados marcadores (${markersData.size}). Mostrando solo $maxMarkersToShow")
+            markersData.take(maxMarkersToShow)
+        } else {
+            markersData
+        }
+
+        // Precargar y reutilizar el bitmap del icono para mejorar rendimiento
+        val originalDrawable = resources.getDrawable(R.drawable.ic_marker_icon, null)
+        val resizedBitmap = Bitmap.createScaledBitmap(
+            (originalDrawable as BitmapDrawable).bitmap,
+            35, // Tamaño reducido para mejor rendimiento
+            45,
+            false
+        )
+        val markerIcon = BitmapDrawable(resources, resizedBitmap)
+
+        markersToShow.forEach { data ->
+            val marker = Marker(mapView).apply {
+                position = GeoPoint(data.latitude, data.longitude)
+                setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
+                icon = markerIcon // Reutilizar el mismo icono
+                title = data.description
+                subDescription = data.date
+
+                setOnMarkerClickListener { _, _ ->
+                    showMarkerDialog(data.date, data.description, data.imageUrl)
+                    true
+                }
+            }
+            visibleMarkers.add(marker)
+            mapView.overlays.add(marker)
+        }
+
+        Log.d("MarkerCount", "Marcadores individuales mostrados: ${visibleMarkers.size}")
+    }
+
+    // Crear un marcador individual
+    private fun createIndividualMarker(data: MarkerData): Marker {
+        return Marker(mapView).apply {
+            position = GeoPoint(data.latitude, data.longitude)
+            setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
+
             val originalDrawable = resources.getDrawable(R.drawable.ic_marker_icon, null)
             val resizedBitmap = Bitmap.createScaledBitmap(
                 (originalDrawable as BitmapDrawable).bitmap,
-                70,
-                90,
+                35,
+                45,
                 false
             )
             icon = BitmapDrawable(resources, resizedBitmap)
+
+            title = data.description
+            subDescription = data.date
+
             setOnMarkerClickListener { _, _ ->
-                showMarkerDialog(date, description, imageUrl)
+                showMarkerDialog(data.date, data.description, data.imageUrl)
                 true
             }
         }
-        mapView.overlays.add(marker)
-        markerList.add(marker)
-        mapView.invalidate()
+    }
+
+    // Mostrar clusters de marcadores
+    private fun showClusters(markersData: List<MarkerData>) {
+        val clusters = mutableMapOf<Pair<Int, Int>, MutableList<MarkerData>>()
+
+        // Ajustar el tamaño de la cuadrícula según el zoom para mejor agrupación
+        val gridSize = when {
+            currentZoomLevel > 16.0 -> 0.3
+            currentZoomLevel > 14.0 -> 0.5
+            currentZoomLevel > 12.0 -> 0.7
+            else -> 1.0
+        }
+
+        markersData.forEach { data ->
+            val gridX = (data.latitude / gridSize).toInt()
+            val gridY = (data.longitude / gridSize).toInt()
+            val gridKey = Pair(gridX, gridY)
+
+            if (!clusters.containsKey(gridKey)) {
+                clusters[gridKey] = mutableListOf()
+            }
+            clusters[gridKey]?.add(data)
+        }
+
+        // Crear marcadores de cluster
+        var clusterCount = 0
+        var markersInClusters = 0
+
+        clusters.forEach { (_, markersInCluster) ->
+            if (markersInCluster.size >= 1) {
+                clusterCount++
+                markersInClusters += markersInCluster.size
+                val centerLat = markersInCluster.map { it.latitude }.average()
+                val centerLon = markersInCluster.map { it.longitude }.average()
+
+                val clusterMarker = createClusterMarker(centerLat, centerLon, markersInCluster.size)
+                clusterMarkers.add(clusterMarker)
+                mapView.overlays.add(clusterMarker)
+            } else {
+                // Si solo hay un marcador en el cluster, mostrarlo individualmente
+                markersInCluster.forEach { data ->
+                    val marker = createIndividualMarker(data)
+                    visibleMarkers.add(marker)
+                    mapView.overlays.add(marker)
+                }
+            }
+        }
+
+        Log.d("ClusterInfo", "Clusters formados: $clusterCount, " +
+                "Marcadores en clusters: $markersInClusters, " +
+                "Marcadores individuales: ${visibleMarkers.size}")
+    }
+
+    // Crear un marcador de cluster
+    private fun createClusterMarker(lat: Double, lon: Double, count: Int): Marker {
+        return Marker(mapView).apply {
+            position = GeoPoint(lat, lon)
+            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+
+            // Crear icono de cluster con el número de marcadores
+            icon = BitmapDrawable(resources, createClusterIcon(count))
+
+            title = "$count polaroids"
+            setOnMarkerClickListener { _, _ ->
+                // Al hacer clic en un cluster, acercarse a esa área
+                mapView.controller.animateTo(GeoPoint(lat, lon), 15.0, 1000L)
+                true
+            }
+        }
+    }
+
+    // Crear un icono de cluster
+    private fun createClusterIcon(count: Int): Bitmap {
+        val width = 100
+        val height = 100
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        // Dibujar círculo de fondo
+        val circlePaint = Paint().apply {
+            color = Color.parseColor("#ff6675")
+            isAntiAlias = true
+        }
+
+        // Dibujar borde
+        val borderPaint = Paint().apply {
+            color = Color.WHITE
+            style = Paint.Style.STROKE
+            strokeWidth = 3f
+            isAntiAlias = true
+        }
+
+        // Dibujar texto
+        val textPaint = Paint().apply {
+            color = Color.WHITE
+            isAntiAlias = true
+            textSize = 24f
+            textAlign = Paint.Align.CENTER
+            typeface = Typeface.DEFAULT_BOLD
+        }
+
+        // Dibujar círculo
+        val centerX = width / 2f
+        val centerY = height / 2f
+        val radius = width / 3f
+        canvas.drawCircle(centerX, centerY, radius, circlePaint)
+        canvas.drawCircle(centerX, centerY, radius, borderPaint)
+
+        // Dibujar texto
+        val text = if (count > 99) "99+" else count.toString()
+        val textBounds = Rect()
+        textPaint.getTextBounds(text, 0, text.length, textBounds)
+        val textHeight = textBounds.bottom - textBounds.top
+        val textY = centerY + (textHeight / 2f) - textBounds.bottom
+
+        canvas.drawText(text, centerX, textY, textPaint)
+
+        return bitmap
     }
 
     // Muestra el diálogo con la información del marcador
@@ -318,22 +501,26 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         selectLocationMapView.overlays.add(centerMarker)
         centerMarker.position = madridGeoPoint
 
-        selectLocationMapView.addMapListener(object : org.osmdroid.events.MapAdapter() {
-            override fun onScroll(event: org.osmdroid.events.ScrollEvent?): Boolean {
+        // Actualizar coordenadas iniciales
+        updateCenterMarkerAndCoordinates(selectLocationMapView, centerMarker, currentCoordinates)
+
+        selectLocationMapView.addMapListener(object : MapAdapter() {
+            override fun onScroll(event: ScrollEvent?): Boolean {
                 updateCenterMarkerAndCoordinates(selectLocationMapView, centerMarker, currentCoordinates)
                 return true
             }
 
             override fun onZoom(event: ZoomEvent?): Boolean {
-                updateCenterMarkerAndCoordinates(selectLocationMapView, centerMarker, currentCoordinates)
+                Handler(Looper.getMainLooper()).postDelayed({
+                    updateCenterMarkerAndCoordinates(selectLocationMapView, centerMarker, currentCoordinates)
+                }, 100)
                 return true
             }
         })
 
         selectLocationButton.setOnClickListener {
-            val iGeoPoint = selectLocationMapView.mapCenter
-            val centerGeoPoint = GeoPoint(iGeoPoint.latitude, iGeoPoint.longitude)
-            dismissDialog(builder)
+            val centerGeoPoint = centerMarker.position
+            selectLocationDialog?.dismiss()
             showCreateMarkerDialog(centerGeoPoint)
         }
 
@@ -343,22 +530,14 @@ class MapFragment : Fragment(R.layout.map_fragment) {
 
     // Actualiza la posición del marcador central y muestra las coordenadas actuales
     private fun updateCenterMarkerAndCoordinates(mapView: MapView, marker: Marker, textView: TextView) {
-        val centerIGeoPoint = mapView.mapCenter
-        // Redondear latitud y longitud a 6 decimales
-        val roundedLat = String.format(Locale.US, "%.6f", centerIGeoPoint.latitude).toDouble()
-        val roundedLng = String.format(Locale.US, "%.6f", centerIGeoPoint.longitude).toDouble()
-        val centerGeoPoint = GeoPoint(roundedLat, roundedLng)
-        marker.position = centerGeoPoint
-        textView.text = "Latitud: $roundedLat, Longitud: $roundedLng"
+        val mapCenter = mapView.mapCenter
+        marker.position = GeoPoint(mapCenter.latitude, mapCenter.longitude)
+        textView.text = "Latitud: ${String.format(Locale.US, "%.6f", mapCenter.latitude)}, " +
+                "Longitud: ${String.format(Locale.US, "%.6f", mapCenter.longitude)}"
+        mapView.invalidate()
     }
 
-    // Cierra un diálogo creado a partir de un AlertDialog.Builder
-    private fun dismissDialog(builder: AlertDialog.Builder) {
-        val dialog = builder.create()
-        if (dialog.isShowing) dialog.dismiss()
-    }
-
-    // Muestra el diálogo para crear un nuevo marcador (con imagen, descripción y fecha)
+    // Muestra el diálogo para crear un nuevo marcador
     private fun showCreateMarkerDialog(geoPoint: GeoPoint) {
         val builder = AlertDialog.Builder(requireContext())
         val inflater = LayoutInflater.from(context)
@@ -381,8 +560,8 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 .setTitle("Seleccionar imagen")
                 .setItems(options) { _, which ->
                     when (which) {
-                        0 -> selectImageLauncher.launch("image/*") // Seleccionar de la galería
-                        1 -> takePictureLauncher.launch(null)      // Tomar una foto
+                        0 -> selectImageLauncher.launch("image/*")
+                        1 -> takePictureLauncher.launch(null)
                     }
                 }
                 .show()
@@ -425,7 +604,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         createMarkerDialog?.show()
     }
 
-    // Sube la imagen a Firebase Storage y llama a la función para guardar el marcador
+    // Sube la imagen a Firebase Storage
     private fun uploadImageToFirebaseStorage(
         imageUri: Uri,
         latitude: Double,
@@ -444,22 +623,26 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             .addOnSuccessListener { taskSnapshot ->
                 taskSnapshot.storage.downloadUrl.addOnSuccessListener { uri ->
                     val imageUrl = uri.toString()
-                    val roundedLat = String.format(Locale.US, "%.6f", latitude).toDouble()
-                    val roundedLng = String.format(Locale.US, "%.6f", longitude).toDouble()
-                    saveNewMarker(roundedLat, roundedLng, date, description, imageUrl)
-                    Toast.makeText(context, "Polaroid subida exitosamente", Toast.LENGTH_SHORT).show()
+                    saveNewMarker(latitude, longitude, date, description, imageUrl)
+
+                    context?.let {
+                        Toast.makeText(it.applicationContext, "Polaroid subida exitosamente", Toast.LENGTH_SHORT).show()
+                    }
+
                     progressDialog.dismiss()
                     createMarkerDialog?.dismiss()
                     selectLocationDialog?.dismiss()
                 }
             }
             .addOnFailureListener { exception ->
-                Toast.makeText(context, "Error al subir la imagen: ${exception.message}", Toast.LENGTH_SHORT).show()
+                context?.let {
+                    Toast.makeText(it, "Error al subir la imagen: ${exception.message}", Toast.LENGTH_SHORT).show()
+                }
                 progressDialog.dismiss()
             }
     }
 
-    // Guarda el nuevo marcador en Firebase Realtime Database y lo muestra en el mapa
+    // Guarda el nuevo marcador en Firebase
     private fun saveNewMarker(
         latitude: Double,
         longitude: Double,
@@ -500,7 +683,9 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                     databaseReference.child(newMarkerKey).setValue(markerData)
                         .addOnSuccessListener {
                             Log.d("Marcador", "Marcador guardado correctamente")
-                            addMarker(latitude, longitude, date, description, imageUrl)
+                            // Añadir el nuevo marcador y actualizar la visualización
+                            allMarkers.add(MarkerData(latitude, longitude, date, description, imageUrl))
+                            updateMapDisplay()
                             progressDialog.dismiss()
                             createMarkerDialog?.dismiss()
                             selectLocationDialog?.dismiss()
@@ -528,78 +713,72 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     // Resalta un marcador en el mapa
     private fun highlightMarkerOnMap(latitude: Double, longitude: Double) {
         val geoPoint = GeoPoint(latitude, longitude)
-        // Centrar el mapa en las coordenadas
         mapView.controller.animateTo(geoPoint)
         mapView.controller.setZoom(16.0)
-        // Encontrar el marcador más cercano dentro de un rango de 50 metros
-        val markerToHighlight = markerList.minByOrNull { marker ->
+
+        // Buscar el marcador más cercano
+        val markerToHighlight = allMarkers.minByOrNull { marker ->
             calculateDistance(
-                marker.position.latitude,
-                marker.position.longitude,
+                marker.latitude,
+                marker.longitude,
                 geoPoint.latitude,
                 geoPoint.longitude
             )
         }
+
         if (markerToHighlight != null) {
             val distance = calculateDistance(
-                markerToHighlight.position.latitude,
-                markerToHighlight.position.longitude,
+                markerToHighlight.latitude,
+                markerToHighlight.longitude,
                 geoPoint.latitude,
                 geoPoint.longitude
             )
-            if (distance <= 50.0) { // Verificar si está dentro del rango de 50 metros
-                Log.d("MapFragment", "Marker found within 50 meters: $distance meters")
-                animateMarker(markerToHighlight)
-            } else {
-                Log.e("MapFragment", "No marker found within 50 meters. Closest marker is $distance meters away.")
+            if (distance <= 50.0) {
+                // Encontrar el marcador visual correspondiente
+                val visualMarker = visibleMarkers.find { marker ->
+                    marker.position.latitude == markerToHighlight.latitude &&
+                            marker.position.longitude == markerToHighlight.longitude
+                }
+                visualMarker?.let { animateMarker(it) }
             }
-        } else {
-            Log.e("MapFragment", "No markers available in the map.")
         }
     }
 
-    // Animar el marcador hacia arriba y abajo
+    // Animar el marcador
     private fun animateMarker(marker: Marker) {
-        val originalPosition = marker.position // Guardar la posición original del marcador
-        var isMovingUp = true // Controlar si el marcador está subiendo o bajando
-        val animationDuration = 3000L // Duración total de la animación en milisegundos
-        val stepInterval = 100L // Intervalo entre cada paso de la animación
-        val steps = (animationDuration / stepInterval).toInt() // Número de pasos
-        val offset = 0.0001 // Desplazamiento en grados (ajusta según sea necesario)
+        val originalPosition = marker.position
+        var isMovingUp = true
+        val animationDuration = 3000L
+        val stepInterval = 100L
+        val steps = (animationDuration / stepInterval).toInt()
+        val offset = 0.0001
         var currentStep = 0
         val handler = Handler(Looper.getMainLooper())
         val runnable = object : Runnable {
             override fun run() {
                 if (currentStep < steps) {
-                    // Calcular la nueva posición del marcador
                     val newLatitude = if (isMovingUp) {
                         originalPosition.latitude + offset
                     } else {
                         originalPosition.latitude - offset
                     }
-                    // Actualizar la posición del marcador
                     marker.position = GeoPoint(newLatitude, originalPosition.longitude)
-                    mapView.invalidate() // Refrescar el mapa
-                    // Alternar la dirección del movimiento
+                    mapView.invalidate()
                     isMovingUp = !isMovingUp
-                    // Incrementar el contador de pasos
                     currentStep++
-                    // Programar el siguiente paso
                     handler.postDelayed(this, stepInterval)
                 } else {
-                    // Restaurar la posición original del marcador al final de la animación
                     marker.position = originalPosition
                     mapView.invalidate()
                 }
             }
         }
-        // Iniciar la animación
         handler.post(runnable)
     }
 
-    // Calcula la distancia en metros entre dos puntos geográficos usando la fórmula de Haversine
+    // Calcula la distancia entre dos puntos
     private fun calculateDistance(lat1: Double, lng1: Double, lat2: Double, lng2: Double): Double {
-        val earthRadiusKm = 6371 // Radio de la Tierra en kilómetros
+        val earthRadiusKm = 6371
         val dLat = Math.toRadians(lat2 - lat1)
         val dLng = Math.toRadians(lng2 - lng1)
         val a = (Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -607,13 +786,11 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 Math.sin(dLng / 2) * Math.sin(dLng / 2))
         val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         val distanceKm = earthRadiusKm * c
-        return distanceKm * 1000 // Convertir a metros
+        return distanceKm * 1000
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        menu.clear() // Limpiar el menú anterior
-        //inflater.inflate(R.menu.map_toolbar_menu, menu) // Usa el menú específico para MapFragment
+        menu.clear()
         super.onCreateOptionsMenu(menu, inflater)
     }
-
 }
