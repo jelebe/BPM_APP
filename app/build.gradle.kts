@@ -15,8 +15,8 @@ android {
         applicationId = "com.besos.bpm"
         minSdk = 29
         targetSdk = 35
-        versionCode = 44
-        versionName = "1.4.4"
+        versionCode = 51
+        versionName = "1.5.1"
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -104,4 +104,5 @@ dependencies {
     implementation("com.github.MKergall:osmbonuspack:6.9.0") // Clustering de marcadores
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
+    implementation("com.squareup.okhttp3:okhttp:4.9.3") // Actualización automática
 }

@@ -2,6 +2,7 @@ package com.besos.bpm
 
 import android.Manifest
 import android.content.Intent
+import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
 import android.view.Menu
@@ -85,7 +86,7 @@ class MainActivity : AppCompatActivity() {
                         }
                         .addOnFailureListener {
                             // Opcional: Puedes loguear el error si lo deseas
-                             Log.e("FCM", "Error al guardar token", it)
+                            Log.e("FCM", "Error al guardar token", it)
                         }
                 }
             } else {
@@ -93,6 +94,24 @@ class MainActivity : AppCompatActivity() {
                 // Log.w("FCM", "No se pudo obtener el token", task.exception)
             }
         }
+
+        // ✅ Verificar actualizaciones al iniciar la app
+        checkForUpdates()
+    }
+
+    // Add this missing function
+    private fun checkForUpdates() {
+        // Solo verificar actualizaciones si hay conexión a internet
+        if (isNetworkAvailable()) {
+            UpdateChecker(this).checkForUpdates()
+        }
+    }
+
+    // Add this helper function
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
