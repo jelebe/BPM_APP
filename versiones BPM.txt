@@ -19,30 +19,37 @@ HECHO 1.4.1 Cambios en Firebase. Añadimos ciudad y país para poder filtrar.
 
 HECHO 1.4.2 Filtro en el FeedFragment:  Añade opciones para filtrar los marcadores por fecha, ubicación o descripción en el FeedFragment.
 
+
 HECHO 1.4.3 Cambiar la relación de aspecto de la imagen: Ahora se selecciona qué parte de la foto se sube para que quede todo dentro de la polariod.
 
-1.4.4  Clusterización de marcadores:  Si hay muchos marcadores cercanos, considera agruparlos usando una librería de clusterización para evitar saturar el mapa.
 
-1.5.1 Notificaciones push:  Implementa notificaciones para informar a los usuarios sobre nuevos marcadores o actualizaciones.
+HECHO 1.4.4  Clusterización de marcadores:  Si hay muchos marcadores cercanos, considera agruparlos usando una librería de clusterización para evitar saturar el mapa.
+             Carga diferida de marcadores:  Actualmente, todos los marcadores se cargan al iniciar el mapa. Implementa una carga diferida basada en la región visible del mapa para mejorar el rendimiento.
 
-1.6.1 Edición/eliminación de marcadores:  Permite a los usuarios editar o eliminar sus propios marcadores después de crearlos.
-
-1.7.1 Zoom inicial dinámico:  En lugar de centrar siempre en Madrid, detecta la ubicación del usuario (si está disponible) y ajusta el zoom inicial según su posición.
-
-1.8.1 Glide optimizado:  Configura Glide para usar caché de imágenes y evitar descargar imágenes repetidamente.
-
-1.8.2 Carga diferida de marcadores:  Actualmente, todos los marcadores se cargan al iniciar el mapa. Implementa una carga diferida basada en la región visible del mapa para mejorar el rendimiento.
-
-1.8.3 Clusterización de marcadores:  Si hay muchos marcadores cercanos, considera agruparlos usando una librería de clusterización para evitar saturar el mapa.
-
-1.8.4 Modo offline:  Guarda los marcadores localmente para que los usuarios puedan verlos sin conexión.
+1.5.1 Actualización automática.
 
 
-
-1.9.1 Acciones rápidas:  Añade atajos en los diálogos, como  usar la ubicación actual del usuario.
-
+1.6.1 Notificaciones push:  Implementa notificaciones para informar a los usuarios sobre nuevos marcadores o actualizaciones.
 
 
-1.10.1 Paginación en Firebase:  Si la cantidad de marcadores crece considerablemente, implementa paginación para cargar datos de Firebase por lotes y evitar sobrecargar la memoria.
+1.7.1 Edición/eliminación de marcadores:  Permite a los usuarios editar o eliminar sus propios marcadores después de crearlos.
 
-1.10.2 Compresión de imágenes:  Comprime las imágenes antes de subirlas a Firebase Storage para reducir el consumo de datos y mejorar el tiempo de carga.
+
+1.8.1 Zoom inicial dinámico:  En lugar de centrar siempre en Madrid, detecta la ubicación del usuario (si está disponible) y ajusta el zoom inicial según su posición.
+
+
+1.9.1 Glide optimizado:  Configura Glide para usar caché de imágenes y evitar descargar imágenes repetidamente.
+
+
+1.9.2 Clusterización de marcadores:  Si hay muchos marcadores cercanos, considera agruparlos usando una librería de clusterización para evitar saturar el mapa.
+
+
+1.9.3 Modo offline:  Guarda los marcadores localmente para que los usuarios puedan verlos sin conexión.
+
+
+1.10.1 Acciones rápidas:  Añade atajos en los diálogos, como  usar la ubicación actual del usuario.
+
+
+1.11.1 Paginación en Firebase:  Si la cantidad de marcadores crece considerablemente, implementa paginación para cargar datos de Firebase por lotes y evitar sobrecargar la memoria.
+
+1.11.2 Compresión de imágenes:  Comprime las imágenes antes de subirlas a Firebase Storage para reducir el consumo de datos y mejorar el tiempo de carga.

@@ -59,6 +59,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
 
     // Variables para el estado actual
     private var currentZoomLevel = 14.0
+    private var lastBoundingBox: BoundingBox? = null
 
     // Variables para manejo de imágenes y diálogos
     private var selectedImageUri: Uri? = null
@@ -171,10 +172,10 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         // Cargar los marcadores desde Firebase
         loadMarkersFromDatabase()
 
-        // Actualizar los marcadores al cambiar el zoom del mapa con delay de 150ms
+        // Actualizar los marcadores al cambiar el zoom o desplazarse por el mapa con delay de 150ms
         mapView.addMapListener(DelayedMapListener(object : MapAdapter() {
             override fun onZoom(event: ZoomEvent?): Boolean {
-                val newZoom = event?.zoomLevel ?: mapView.zoomLevelDouble
+                val newZoom = mapView.zoomLevelDouble
                 if (newZoom != currentZoomLevel) {
                     currentZoomLevel = newZoom
                     Log.d("MapZoom", "Nivel de zoom cambiado: $currentZoomLevel")
@@ -184,13 +185,9 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             }
 
             override fun onScroll(event: ScrollEvent?): Boolean {
-                // Solo actualizar si el zoom ha cambiado durante el desplazamiento
-                val newZoom = mapView.zoomLevelDouble
-                if (newZoom != currentZoomLevel) {
-                    currentZoomLevel = newZoom
-                    Log.d("MapZoom", "Nivel de zoom actualizado durante desplazamiento: $currentZoomLevel")
-                    updateMapDisplay()
-                }
+                // Actualizar siempre al desplazarse, incluso con mismo zoom
+                Log.d("MapScroll", "Desplazamiento detectado, actualizando marcadores")
+                updateMapDisplay()
                 return true
             }
         }, 150))
@@ -246,34 +243,41 @@ class MapFragment : Fragment(R.layout.map_fragment) {
 
     // Actualizar la visualización del mapa basado en el zoom y posición actual
     private fun updateMapDisplay() {
-        val actualZoom = mapView.zoomLevelDouble
-        if (actualZoom != currentZoomLevel) {
-            currentZoomLevel = actualZoom
-        }
+        val currentBoundingBox = mapView.boundingBox
+        val currentZoom = mapView.zoomLevelDouble
 
-        // Limpiar marcadores existentes de manera más eficiente
-        mapView.overlays.removeAll(visibleMarkers)
-        visibleMarkers.clear()
-        mapView.overlays.removeAll(clusterMarkers)
-        clusterMarkers.clear()
+        // Solo actualizar si cambió el área visible o el zoom
+        if (lastBoundingBox != currentBoundingBox || currentZoom != currentZoomLevel) {
+            lastBoundingBox = currentBoundingBox
+            currentZoomLevel = currentZoom
 
-        // Calcular el área visible actual con optimización
-        val boundingBox = mapView.boundingBox
-        val visibleMarkersData = allMarkers.filter { marker ->
-            boundingBox.contains(GeoPoint(marker.latitude, marker.longitude))
-        }
+            Log.d("MapDisplay", "Zoom: $currentZoomLevel, " +
+                    "Actualizando marcadores por cambio de área visible")
 
-        Log.d("MapDisplay", "Zoom: $currentZoomLevel, " +
-                "Marcadores visibles: ${visibleMarkersData.size}")
+            // Limpiar marcadores existentes de manera más eficiente
+            mapView.overlays.removeAll(visibleMarkers)
+            visibleMarkers.clear()
+            mapView.overlays.removeAll(clusterMarkers)
+            clusterMarkers.clear()
 
-        // Mostrar clusters en zoom bajo, marcadores individuales en zoom alto
-        if (currentZoomLevel >= 14) {
-            showIndividualMarkers(visibleMarkersData)
+            // Calcular el área visible actual con optimización
+            val visibleMarkersData = allMarkers.filter { marker ->
+                currentBoundingBox.contains(GeoPoint(marker.latitude, marker.longitude))
+            }
+
+            Log.d("MapDisplay", "Marcadores visibles: ${visibleMarkersData.size}")
+
+            // Mostrar clusters en zoom bajo, marcadores individuales en zoom alto
+            if (currentZoomLevel >= 14) {
+                showIndividualMarkers(visibleMarkersData)
+            } else {
+                showClusters(visibleMarkersData)
+            }
+
+            mapView.invalidate()
         } else {
-            showClusters(visibleMarkersData)
+            Log.d("MapDisplay", "No se actualiza: misma área visible y mismo zoom")
         }
-
-        mapView.invalidate()
     }
 
     // Mostrar marcadores individuales con optimizaciones de rendimiento
@@ -300,7 +304,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         markersToShow.forEach { data ->
             val marker = Marker(mapView).apply {
                 position = GeoPoint(data.latitude, data.longitude)
-                setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                 icon = markerIcon // Reutilizar el mismo icono
                 title = data.description
                 subDescription = data.date
@@ -321,13 +325,13 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     private fun createIndividualMarker(data: MarkerData): Marker {
         return Marker(mapView).apply {
             position = GeoPoint(data.latitude, data.longitude)
-            setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
+            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
 
             val originalDrawable = resources.getDrawable(R.drawable.ic_marker_icon, null)
             val resizedBitmap = Bitmap.createScaledBitmap(
                 (originalDrawable as BitmapDrawable).bitmap,
-                35,
-                45,
+                70,
+                90,
                 false
             )
             icon = BitmapDrawable(resources, resizedBitmap)
