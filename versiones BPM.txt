@@ -33,20 +33,22 @@ HECHO 1.5.1 Actualización automática.
 HECHO 1.5.2 Ubicaciones más precisas. Modificar boton de mapa y corazón.
             Zoom inicial dinámico:  En lugar de centrar siempre en Madrid, detecta la ubicación del usuario (si está disponible) y ajusta el zoom inicial según su posición.
 
-
-1.6.1 Notificaciones push:  Implementa notificaciones para informar a los usuarios sobre nuevos marcadores o actualizaciones.
-
-
-1.7.1 Edición/eliminación de marcadores:  Permite a los usuarios editar o eliminar sus propios marcadores después de crearlos.
+HECHO 1.6.1 Marcadores con las polariods.
 
 
-1.8.1 Glide optimizado:  Configura Glide para usar caché de imágenes y evitar descargar imágenes repetidamente.
+1.7.1 Notificaciones push:  Implementa notificaciones para informar a los usuarios sobre nuevos marcadores o actualizaciones.
 
 
-1.9.1 Modo offline:  Guarda los marcadores localmente para que los usuarios puedan verlos sin conexión.
+1.8.1 Edición/eliminación de marcadores:  Permite a los usuarios editar o eliminar sus propios marcadores después de crearlos.
 
 
-1.10.1 Paginación en Firebase:  Si la cantidad de marcadores crece considerablemente, implementa paginación para cargar datos de Firebase por lotes y evitar sobrecargar la memoria.
+1.9.1 Glide optimizado:  Configura Glide para usar caché de imágenes y evitar descargar imágenes repetidamente.
 
 
-1.10.2 Compresión de imágenes:  Comprime las imágenes antes de subirlas a Firebase Storage para reducir el consumo de datos y mejorar el tiempo de carga.
+1.10.1 Modo offline:  Guarda los marcadores localmente para que los usuarios puedan verlos sin conexión.
+
+
+1.11.1 Paginación en Firebase:  Si la cantidad de marcadores crece considerablemente, implementa paginación para cargar datos de Firebase por lotes y evitar sobrecargar la memoria.
+
+
+1.11.2 Compresión de imágenes:  Comprime las imágenes antes de subirlas a Firebase Storage para reducir el consumo de datos y mejorar el tiempo de carga.
