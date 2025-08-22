@@ -797,4 +797,27 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         menu.clear()
         super.onCreateOptionsMenu(menu, inflater)
     }
+
+    fun adjustMapBasedOnZoom() {
+        val currentZoom = mapView.zoomLevelDouble
+        val currentCenter = mapView.mapCenter
+
+        if (currentZoom >= 14) {
+            // Si estamos en zoom cercano (14+), alejar para mostrar clusters
+            val targetZoom = 12.0
+            mapView.controller.animateTo(currentCenter, targetZoom, 1000L)
+
+        } else {
+            // Si estamos en zoom lejano (<14), acercar a la ubicación actual
+            mapView.controller.animateTo(currentCenter, 14.0, 1000L)
+
+        }
+    }
+
+    // Metodo para centrar en una ubicación específica
+    fun centerOnLocation(latitude: Double, longitude: Double) {
+        val geoPoint = GeoPoint(latitude, longitude)
+        mapView.controller.animateTo(geoPoint, 14.0, 1000L)
+
+    }
 }
