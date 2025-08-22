@@ -334,7 +334,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         Log.d("MarkerCount", "Marcadores individuales mostrados: ${visibleMarkers.size}")
     }
 
-    // Método para cargar y crear polaroids personalizadas
+    // Metodo para cargar y crear polaroids personalizadas
     private fun loadPolaroidForMarker(imageUrl: String, marker: Marker) {
         // Verificar si ya tenemos la miniatura en cache
         val cachedBitmap = polaroidCache.get(imageUrl)
@@ -375,7 +375,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             })
     }
 
-    // Método para crear un bitmap con formato polaroid
+    // Metodo para crear un bitmap con formato polaroid
     private fun createPolaroidBitmap(photoBitmap: Bitmap): Bitmap {
         // Crear un bitmap para la polaroid completa
         val polaroid = Bitmap.createBitmap(polaroidWidth, polaroidHeight, Bitmap.Config.ARGB_8888)
