@@ -26,7 +26,7 @@ HECHO 1.4.3 Cambiar la relación de aspecto de la imagen: Ahora se selecciona qu
 HECHO 1.4.4  Clusterización de marcadores:  Si hay muchos marcadores cercanos, considera agruparlos usando una librería de clusterización para evitar saturar el mapa.
              Carga diferida de marcadores:  Actualmente, todos los marcadores se cargan al iniciar el mapa. Implementa una carga diferida basada en la región visible del mapa para mejorar el rendimiento.
 
-1.5.1 Actualización automática.
+HECHO 1.5.1 Actualización automática.
 
 
 1.6.1 Notificaciones push:  Implementa notificaciones para informar a los usuarios sobre nuevos marcadores o actualizaciones.

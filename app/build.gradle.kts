@@ -104,4 +104,5 @@ dependencies {
     implementation("com.github.MKergall:osmbonuspack:6.9.0") // Clustering de marcadores
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
 
+    implementation("com.squareup.okhttp3:okhttp:4.9.3") // Actualización automática
 }
