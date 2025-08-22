@@ -5,11 +5,13 @@ import android.app.DatePickerDialog
 import android.app.ProgressDialog
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.text.InputType
+import android.util.LruCache
 import android.util.Log
 import android.view.*
 import android.widget.*
@@ -17,6 +19,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
@@ -67,6 +73,11 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     private var createMarkerDialog: AlertDialog? = null
     private var selectLocationDialog: AlertDialog? = null
     private lateinit var progressDialog: ProgressDialog
+
+    // Cache para polaroids
+    private lateinit var polaroidCache: LruCache<String, Bitmap>
+    private val polaroidWidth = 120
+    private val polaroidHeight = 150
 
     // Data class para almacenar información de marcadores
     data class MarkerData(
@@ -140,6 +151,11 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
+
+        // Inicializar cache de polaroids
+        val maxMemory = (Runtime.getRuntime().maxMemory() / 1024).toInt()
+        val cacheSize = maxMemory / 8 // Usar 1/8 de la memoria disponible
+        polaroidCache = LruCache<String, Bitmap>(cacheSize)
 
         // Inicializar las vistas del fragmento
         mapView = view.findViewById(R.id.mapview)
@@ -280,7 +296,7 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         }
     }
 
-    // Mostrar marcadores individuales con optimizaciones de rendimiento
+    // Mostrar marcadores individuales con polaroids personalizadas
     private fun showIndividualMarkers(markersData: List<MarkerData>) {
         // Limitar la cantidad de marcadores para mejorar rendimiento
         val maxMarkersToShow = 50
@@ -291,21 +307,15 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             markersData
         }
 
-        // Precargar y reutilizar el bitmap del icono para mejorar rendimiento
-        val originalDrawable = resources.getDrawable(R.drawable.ic_marker_icon, null)
-        val resizedBitmap = Bitmap.createScaledBitmap(
-            (originalDrawable as BitmapDrawable).bitmap,
-            35, // Tamaño reducido para mejor rendimiento
-            45,
-            false
-        )
-        val markerIcon = BitmapDrawable(resources, resizedBitmap)
-
         markersToShow.forEach { data ->
             val marker = Marker(mapView).apply {
                 position = GeoPoint(data.latitude, data.longitude)
-                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-                icon = markerIcon // Reutilizar el mismo icono
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+
+                // Usar icono temporal mientras se carga la polaroid
+                val placeholder = resources.getDrawable(R.drawable.ic_marker_icon, null)
+                icon = placeholder
+
                 title = data.description
                 subDescription = data.date
 
@@ -316,25 +326,107 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             }
             visibleMarkers.add(marker)
             mapView.overlays.add(marker)
+
+            // Cargar la polaroid personalizada en segundo plano
+            loadPolaroidForMarker(data.imageUrl, marker)
         }
 
         Log.d("MarkerCount", "Marcadores individuales mostrados: ${visibleMarkers.size}")
     }
 
-    // Crear un marcador individual
-    private fun createIndividualMarker(data: MarkerData): Marker {
-        return Marker(mapView).apply {
-            position = GeoPoint(data.latitude, data.longitude)
-            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
+    // Método para cargar y crear polaroids personalizadas
+    private fun loadPolaroidForMarker(imageUrl: String, marker: Marker) {
+        // Verificar si ya tenemos la miniatura en cache
+        val cachedBitmap = polaroidCache.get(imageUrl)
+        if (cachedBitmap != null) {
+            marker.icon = BitmapDrawable(resources, cachedBitmap)
+            mapView.invalidate()
+            return
+        }
 
-            val originalDrawable = resources.getDrawable(R.drawable.ic_marker_icon, null)
-            val resizedBitmap = Bitmap.createScaledBitmap(
-                (originalDrawable as BitmapDrawable).bitmap,
-                70,
-                90,
-                false
-            )
-            icon = BitmapDrawable(resources, resizedBitmap)
+        // Cargar la imagen en segundo plano y crear la polaroid
+        Glide.with(requireContext())
+            .asBitmap()
+            .load(imageUrl)
+            .override(polaroidWidth, polaroidHeight)
+            .transform(CenterCrop(), RoundedCorners(8))
+            .into(object : CustomTarget<Bitmap>() {
+                override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                    // Crear la polaroid personalizada
+                    val polaroidBitmap = createPolaroidBitmap(resource)
+
+                    // Guardar en cache
+                    polaroidCache.put(imageUrl, polaroidBitmap)
+
+                    // Actualizar el marcador
+                    marker.icon = BitmapDrawable(resources, polaroidBitmap)
+                    mapView.invalidate()
+                }
+
+                override fun onLoadCleared(placeholder: Drawable?) {
+                    // No hacer nada cuando se limpia la carga
+                }
+
+                override fun onLoadFailed(errorDrawable: Drawable?) {
+                    // Usar icono por defecto si falla la carga
+                    val defaultIcon = resources.getDrawable(R.drawable.ic_marker_icon, null)
+                    marker.icon = defaultIcon
+                }
+            })
+    }
+
+    // Método para crear un bitmap con formato polaroid
+    private fun createPolaroidBitmap(photoBitmap: Bitmap): Bitmap {
+        // Crear un bitmap para la polaroid completa
+        val polaroid = Bitmap.createBitmap(polaroidWidth, polaroidHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(polaroid)
+
+        // Dibujar el fondo blanco de la polaroid
+        val paint = Paint()
+        paint.color = Color.WHITE
+        canvas.drawRect(0f, 0f, polaroidWidth.toFloat(), polaroidHeight.toFloat(), paint)
+
+        // Dibujar un borde sutil
+        paint.color = Color.argb(50, 0, 0, 0)
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 2f
+        canvas.drawRect(1f, 1f, polaroidWidth.toFloat() - 1f, polaroidHeight.toFloat() - 1f, paint)
+
+        // Calcular el área para la foto (dejando espacio en la parte inferior para el "marco")
+        val photoAreaWidth = polaroidWidth - 16
+        val photoAreaHeight = polaroidHeight - 40
+        val photoLeft = 8
+        val photoTop = 8
+
+        // Dibujar la foto
+        val scaledPhoto = Bitmap.createScaledBitmap(photoBitmap, photoAreaWidth, photoAreaHeight, true)
+        canvas.drawBitmap(scaledPhoto, photoLeft.toFloat(), photoTop.toFloat(), null)
+
+        // Dibujar una sombra sutil en la parte inferior para simular el marco
+        val shadowPaint = Paint()
+        val shadowHeight = 24f
+        val shadowTop = polaroidHeight - shadowHeight - 8
+
+        shadowPaint.shader = LinearGradient(
+            0f, shadowTop,
+            0f, polaroidHeight.toFloat(),
+            Color.argb(30, 0, 0, 0), Color.TRANSPARENT,
+            Shader.TileMode.CLAMP
+        )
+        canvas.drawRect(8f, shadowTop, polaroidWidth.toFloat() - 8f, polaroidHeight.toFloat() - 8f, shadowPaint)
+
+        return polaroid
+    }
+
+    // Crear un marcador individual con polaroid
+    private fun createIndividualMarker(data: MarkerData): Marker {
+        val marker = Marker(mapView).apply {
+            position = GeoPoint(data.latitude, data.longitude)
+            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+
+            // Usar icono temporal
+            val placeholder = resources.getDrawable(R.drawable.ic_marker_icon, null)
+            icon = placeholder
 
             title = data.description
             subDescription = data.date
@@ -344,6 +436,11 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 true
             }
         }
+
+        // Cargar la polaroid personalizada
+        loadPolaroidForMarker(data.imageUrl, marker)
+
+        return marker
     }
 
     // Mostrar clusters de marcadores
@@ -806,11 +903,9 @@ class MapFragment : Fragment(R.layout.map_fragment) {
             // Si estamos en zoom cercano (14+), alejar para mostrar clusters
             val targetZoom = 12.0
             mapView.controller.animateTo(currentCenter, targetZoom, 1000L)
-
         } else {
             // Si estamos en zoom lejano (<14), acercar a la ubicación actual
             mapView.controller.animateTo(currentCenter, 14.0, 1000L)
-
         }
     }
 
@@ -818,6 +913,11 @@ class MapFragment : Fragment(R.layout.map_fragment) {
     fun centerOnLocation(latitude: Double, longitude: Double) {
         val geoPoint = GeoPoint(latitude, longitude)
         mapView.controller.animateTo(geoPoint, 14.0, 1000L)
+    }
 
+    // Limpiar cache cuando se destruye la vista
+    override fun onDestroyView() {
+        super.onDestroyView()
+        polaroidCache.evictAll()
     }
 }
