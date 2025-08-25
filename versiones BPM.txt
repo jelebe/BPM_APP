@@ -33,10 +33,10 @@ HECHO 1.5.1 Actualización automática.
 HECHO 1.5.2 Ubicaciones más precisas. Modificar boton de mapa y corazón.
             Zoom inicial dinámico:  En lugar de centrar siempre en Madrid, detecta la ubicación del usuario (si está disponible) y ajusta el zoom inicial según su posición.
 
-HECHO 1.6.1 Marcadores con las polariods.
+HECHO 1.6.1 Marcadores con las polaroids.
 
 
-1.7.1 Notificaciones push:  Implementa notificaciones para informar a los usuarios sobre nuevos marcadores o actualizaciones.
+HECHO 1.7.1 Notificaciones push:  Implementa notificaciones para informar a los usuarios sobre nuevos marcadores o actualizaciones.
 
 
 1.8.1 Edición/eliminación de marcadores:  Permite a los usuarios editar o eliminar sus propios marcadores después de crearlos.

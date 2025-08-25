@@ -7,6 +7,7 @@ import android.location.Location
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageButton
@@ -21,12 +22,15 @@ import com.google.android.gms.location.LocationServices
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.messaging.FirebaseMessaging
-import android.util.Log
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val LOCATION_PERMISSION_REQUEST_CODE = 1001
+
+    // Definir los UIDs de los dos usuarios (reemplaza con los UIDs reales)
+    private val USER1_UID = "JFYdmUPY93eETaxw0TLyoVgktw22"
+    private val USER2_UID = "zZDxTAG9TheoDHJsw5ZidM2kALj2"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -111,18 +115,19 @@ class MainActivity : AppCompatActivity() {
                 val uid = FirebaseAuth.getInstance().currentUser?.uid
 
                 if (uid != null) {
-                    val ref = FirebaseDatabase.getInstance().getReference("users/$uid/fcmToken")
-                    ref.setValue(token)
-                        .addOnSuccessListener {
-                            // Eliminado: No mostrar mensaje
-                        }
-                        .addOnFailureListener {
-                            Log.e("FCM", "Error al guardar token", it)
-                        }
+                    val ref = FirebaseDatabase.getInstance().getReference("users/$uid")
+
+                    // Guardar el token FCM
+                    ref.child("fcmToken").setValue(token)
+
+                    // Determinar y guardar el UID del otro usuario para notificaciones
+                    val otherUserId = if (uid == USER1_UID) USER2_UID else USER1_UID
+                    ref.child("notifyUserId").setValue(otherUserId)
+
+                    Log.d("FCM", "Token guardado y usuario de notificación configurado")
                 }
             } else {
-                // Opcional: Puedes registrar el fallo si necesitas depurarlo
-                // Log.w("FCM", "No se pudo obtener el token", task.exception)
+                Log.w("FCM", "No se pudo obtener el token", task.exception)
             }
         }
 

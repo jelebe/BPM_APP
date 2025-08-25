@@ -15,8 +15,8 @@ android {
         applicationId = "com.besos.bpm"
         minSdk = 29
         targetSdk = 35
-        versionCode = 61
-        versionName = "1.6.1"
+        versionCode = 71
+        versionName = "1.7.1"
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -74,6 +74,7 @@ dependencies {
 
     // Firebase Messaging
     implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.firebase:firebase-messaging:23.0.0")
 
     // Dependencia para AppCompat (necesaria para AppCompatActivity)
     implementation("androidx.appcompat:appcompat:1.6.1")

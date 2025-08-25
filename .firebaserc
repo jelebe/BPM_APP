@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "besosporelmundo"
-  }
+    "default": "besosporelmundo",
+    "besosporelmundo": "besosporelmundo"
+  },
+  "targets": {},
+  "etags": {}
 }
