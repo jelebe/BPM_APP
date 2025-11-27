@@ -43,6 +43,9 @@ HECHO 1.6.1 Marcadores con las polaroids.
 HECHO 1.7.1 Notificaciones push:  Implementa notificaciones para informar a los usuarios sobre nuevos marcadores o actualizaciones.
 
 
+HECHO 1.7.1.1 Fix toolbar y ubicación.
+
+
 1.8.1 Glide optimizado:  Configura Glide para usar caché de imágenes y evitar descargar imágenes repetidamente.
 
 
