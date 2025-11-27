@@ -2,11 +2,13 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background">
+    android:background="@drawable/background"
+    android:fitsSystemWindows="true">
 
-    <!-- Toolbar personalizada (Top Bar) -->
+    <!-- Toolbar personalizada -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="0dp"
@@ -14,8 +16,9 @@
         android:background="@drawable/background_toolbar_extra"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-        <!-- Incluye el layout personalizado -->
+        app:layout_constraintEnd_toEndOf="parent"
+        android:fitsSystemWindows="true">
+
         <include layout="@layout/toolbar_custom"/>
     </androidx.appcompat.widget.Toolbar>
 
