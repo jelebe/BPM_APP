@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -10,6 +11,9 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- Permiso para notificaciones en Android 13+ -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -21,7 +25,13 @@
         android:theme="@style/AppTheme.NoActionBar"
         tools:targetApi="31">
 
-        <receiver android:name=".InstallCompleteReceiver"
+        <!-- Configuración de Glide -->
+        <meta-data
+            android:name="com.besos.bpm.GlideConfig"
+            android:value="AppGlideModule" />
+
+        <receiver
+            android:name=".InstallCompleteReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_REPLACED" />
@@ -62,6 +72,7 @@
         <activity
             android:name=".LoginActivity"
             android:exported="true"
+            android:theme="@style/AppTheme.NoActionBar"
             android:configChanges="orientation|screenSize">
         </activity>
 
@@ -69,7 +80,11 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:label="@string/app_name" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:label="@string/app_name"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait" />
 
         <!-- Actividad recorte imagen -->
         <activity
