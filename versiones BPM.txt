@@ -55,10 +55,10 @@ HECHO 1.7.1.1 Fix toolbar y ubicación.
 1.9.1 Polariods reversibles. añadir texto detrás del Polariod
 
 
-1.9.1 Edición/eliminación de marcadores:  Permite a los usuarios editar o eliminar sus propios marcadores después de crearlos.
+1.10.1 Edición/eliminación de marcadores:  Permite a los usuarios editar o eliminar sus propios marcadores después de crearlos.
 
 
-1.10.1 Paginación en Firebase:  Si la cantidad de marcadores crece considerablemente, implementa paginación para cargar datos de Firebase por lotes y evitar sobrecargar la memoria.
+1.11.1 Paginación en Firebase:  Si la cantidad de marcadores crece considerablemente, implementa paginación para cargar datos de Firebase por lotes y evitar sobrecargar la memoria.
 
 
-1.10.2 Compresión de imágenes:  Comprime las imágenes antes de subirlas a Firebase Storage para reducir el consumo de datos y mejorar el tiempo de carga.
+1.12.2 Compresión de imágenes:  Comprime las imágenes antes de subirlas a Firebase Storage para reducir el consumo de datos y mejorar el tiempo de carga.
