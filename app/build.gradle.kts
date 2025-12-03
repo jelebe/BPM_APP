@@ -15,8 +15,8 @@ android {
         applicationId = "com.besos.bpm"
         minSdk = 29
         targetSdk = 35
-        versionCode = 71
-        versionName = "1.7.1"
+        versionCode = 72
+        versionName = "1.7.1.1"
 
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

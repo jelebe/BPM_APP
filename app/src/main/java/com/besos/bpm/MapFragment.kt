@@ -725,14 +725,6 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 taskSnapshot.storage.downloadUrl.addOnSuccessListener { uri ->
                     val imageUrl = uri.toString()
                     saveNewMarker(latitude, longitude, date, description, imageUrl)
-
-                    context?.let {
-                        Toast.makeText(it.applicationContext, "Polaroid subida exitosamente", Toast.LENGTH_SHORT).show()
-                    }
-
-                    progressDialog.dismiss()
-                    createMarkerDialog?.dismiss()
-                    selectLocationDialog?.dismiss()
                 }
             }
             .addOnFailureListener { exception ->
@@ -755,58 +747,91 @@ class MapFragment : Fragment(R.layout.map_fragment) {
 
         val currentUserUid = FirebaseAuth.getInstance().currentUser?.uid
 
+        // PRIMERO: Crear una función auxiliar para guardar el marcador
+        fun saveMarkerToFirebase(city: String? = null, country: String? = null) {
+            val newMarkerKey = databaseReference.push().key
+            if (newMarkerKey == null) {
+                Log.e("Firebase", "Error al generar una clave para el marcador")
+                Toast.makeText(context, "Error al generar una clave para el marcador", Toast.LENGTH_SHORT).show()
+                progressDialog.dismiss()
+                return
+            }
+
+            val markerData = mapOf(
+                "latlng" to mapOf("lat" to latitude, "lng" to longitude),
+                "date" to date,
+                "description" to description,
+                "image" to imageUrl,
+                "city" to city,
+                "country" to country,
+                "creatorUid" to currentUserUid
+            )
+
+            databaseReference.child(newMarkerKey).setValue(markerData)
+                .addOnSuccessListener {
+                    Log.d("Marcador", "Marcador guardado correctamente")
+                    // Añadir el nuevo marcador y actualizar la visualización
+                    allMarkers.add(MarkerData(latitude, longitude, date, description, imageUrl))
+                    updateMapDisplay()
+                    progressDialog.dismiss()
+                    createMarkerDialog?.dismiss()
+                    selectLocationDialog?.dismiss()
+
+                    // Mostrar mensaje de éxito
+                    Toast.makeText(context, "Polaroid guardada exitosamente", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { exception ->
+                    Log.e("Marcador", "Error al guardar el marcador: ${exception.message}")
+                    Toast.makeText(context, "Error al guardar el marcador en la base de datos", Toast.LENGTH_SHORT).show()
+                    progressDialog.dismiss()
+                }
+        }
+
+        // Intentar obtener la información de geocodificación, pero con timeout
+        val handler = Handler(Looper.getMainLooper())
+        val timeoutRunnable = Runnable {
+            Log.w("Nominatim", "Timeout en la geocodificación")
+            // Guardar sin información de ciudad/país si timeout
+            saveMarkerToFirebase()
+        }
+
+        // Programar timeout de 10 segundos
+        handler.postDelayed(timeoutRunnable, 10000)
+
         RetrofitClient.instance.getReverseGeocode(latitude, longitude).enqueue(object :
             retrofit2.Callback<NominatimResponse> {
             override fun onResponse(call: Call<NominatimResponse>, response: retrofit2.Response<NominatimResponse>) {
-                if (response.isSuccessful) {
-                    val address = response.body()?.address
-                    val city = address?.city ?: address?.town ?: address?.village
-                    val country = address?.country
+                // Cancelar el timeout
+                handler.removeCallbacks(timeoutRunnable)
 
-                    val newMarkerKey = databaseReference.push().key
-                    if (newMarkerKey == null) {
-                        Log.e("Firebase", "Error al generar una clave para el marcador")
-                        Toast.makeText(context, "Error al generar una clave para el marcador", Toast.LENGTH_SHORT).show()
-                        progressDialog.dismiss()
-                        return
+                if (response.isSuccessful && response.body() != null) {
+                    try {
+                        val address = response.body()?.address
+                        val city = address?.city ?: address?.town ?: address?.village
+                        val country = address?.country
+
+                        Log.d("Geocoding", "Ciudad obtenida: $city, País: $country")
+
+                        saveMarkerToFirebase(city, country)
+                    } catch (e: Exception) {
+                        Log.e("Nominatim", "Error al procesar respuesta: ${e.message}")
+                        // Guardar sin información de ciudad/país si hay error en el parsing
+                        saveMarkerToFirebase()
                     }
-
-                    val markerData = mapOf(
-                        "latlng" to mapOf("lat" to latitude, "lng" to longitude),
-                        "date" to date,
-                        "description" to description,
-                        "image" to imageUrl,
-                        "city" to city,
-                        "country" to country,
-                        "creatorUid" to currentUserUid
-                    )
-
-                    databaseReference.child(newMarkerKey).setValue(markerData)
-                        .addOnSuccessListener {
-                            Log.d("Marcador", "Marcador guardado correctamente")
-                            // Añadir el nuevo marcador y actualizar la visualización
-                            allMarkers.add(MarkerData(latitude, longitude, date, description, imageUrl))
-                            updateMapDisplay()
-                            progressDialog.dismiss()
-                            createMarkerDialog?.dismiss()
-                            selectLocationDialog?.dismiss()
-                        }
-                        .addOnFailureListener { exception ->
-                            Log.e("Marcador", "Error al guardar el marcador: ${exception.message}")
-                            Toast.makeText(context, "Error al guardar el marcador", Toast.LENGTH_SHORT).show()
-                            progressDialog.dismiss()
-                        }
                 } else {
-                    Log.e("Nominatim", "Error en la respuesta: ${response.errorBody()}")
-                    Toast.makeText(context, "Error al obtener la ubicación", Toast.LENGTH_SHORT).show()
-                    progressDialog.dismiss()
+                    Log.e("Nominatim", "Respuesta no exitosa: ${response.code()} - ${response.errorBody()?.string()}")
+                    // Guardar sin información de ciudad/país
+                    saveMarkerToFirebase()
                 }
             }
 
             override fun onFailure(call: Call<NominatimResponse>, t: Throwable) {
+                // Cancelar el timeout
+                handler.removeCallbacks(timeoutRunnable)
+
                 Log.e("Nominatim", "Error en la solicitud: ${t.message}")
-                Toast.makeText(context, "Error al obtener la ubicación", Toast.LENGTH_SHORT).show()
-                progressDialog.dismiss()
+                // Guardar sin información de ciudad/país
+                saveMarkerToFirebase()
             }
         })
     }
