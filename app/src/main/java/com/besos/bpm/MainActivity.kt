@@ -1,6 +1,7 @@
 package com.besos.bpm
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
@@ -37,9 +38,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        // Configurar la barra de estado
-        setupStatusBar()
 
         // Crear canal de notificación para Android 8+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -92,43 +90,42 @@ class MainActivity : AppCompatActivity() {
                 .commit()
         }
 
-        // Pedir permiso de notificaciones si Android >= 13
+        // Pedir permisos en orden y de forma clara
+        requestPermissions()
+    }
+
+    private fun requestPermissions() {
+        val permissionsToRequest = mutableListOf<String>()
+
+        // Verificar permiso de ubicación
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+
+        // Verificar permiso de notificaciones (solo para Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    101
-                )
+                permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
 
-        // Verificar y pedir permisos de ubicación
-        checkLocationPermission()
-
-        // Obtener el token FCM y guardarlo en Realtime Database
-        setupFCMToken()
-
-        // Verificar actualizaciones al iniciar la app
-        checkForUpdates()
-    }
-
-    private fun setupStatusBar() {
-        // Configurar la barra de estado para que no se superponga
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.apply {
-                // Hacer la barra de estado transparente
-                statusBarColor = android.graphics.Color.TRANSPARENT
-                // Para texto claro en barra de estado (iconos blancos)
-                decorView.systemUiVisibility =
-                    android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
-                            android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            }
+        // Si hay permisos para solicitar, pedirlos todos juntos
+        if (permissionsToRequest.isNotEmpty()) {
+            ActivityCompat.requestPermissions(
+                this,
+                permissionsToRequest.toTypedArray(),
+                LOCATION_PERMISSION_REQUEST_CODE
+            )
+        } else {
+            // Todos los permisos ya están concedidos, continuar con la inicialización
+            initAfterPermissions()
         }
     }
 
-    private fun setupFCMToken() {
+    private fun initAfterPermissions() {
+        // 📲 Obtener el token FCM y guardarlo en Realtime Database
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val token = task.result
@@ -150,50 +147,21 @@ class MainActivity : AppCompatActivity() {
                 Log.w("FCM", "No se pudo obtener el token", task.exception)
             }
         }
+
+        // Verificar actualizaciones al iniciar la app
+        checkForUpdates()
     }
 
-    private fun checkLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED) {
-
-            // Mostrar explicación si es necesario
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // Mostrar diálogo explicativo
-                showLocationPermissionExplanation()
-            } else {
-                // Pedir permiso directamente
-                requestLocationPermission()
-            }
-        } else {
-            // Permiso ya concedido
-            Log.d("Location", "Permiso de ubicación concedido")
+    private fun checkForUpdates() {
+        if (isNetworkAvailable()) {
+            UpdateChecker(this).checkForUpdates()
         }
     }
 
-    private fun showLocationPermissionExplanation() {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Permiso de Ubicación Necesario")
-            .setMessage("Esta aplicación necesita acceso a tu ubicación para mostrar tus polaroids en el mapa y centrar el mapa en tu ubicación actual.")
-            .setPositiveButton("Entendido") { _, _ ->
-                requestLocationPermission()
-            }
-            .setNegativeButton("Cancelar") { dialog, _ ->
-                dialog.dismiss()
-                Toast.makeText(this, "Puedes activar el permiso más tarde en Configuración", Toast.LENGTH_SHORT).show()
-            }
-            .show()
-    }
-
-    private fun requestLocationPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ),
-            LOCATION_PERMISSION_REQUEST_CODE
-        )
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        return networkInfo != null && networkInfo.isConnected
     }
 
     fun centerOnCurrentLocation() {
@@ -208,43 +176,32 @@ class MainActivity : AppCompatActivity() {
                             currentFragment.centerOnLocation(it.latitude, it.longitude)
                         }
                     } ?: run {
-                        Toast.makeText(this, "No se pudo obtener la ubicación actual", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "No se pudo obtener la ubicación", Toast.LENGTH_SHORT).show()
                     }
                 }
-                .addOnFailureListener { e ->
-                    Log.e("Location", "Error al obtener ubicación: ${e.message}")
-                    Toast.makeText(this, "Error al obtener la ubicación", Toast.LENGTH_SHORT).show()
-                }
         } else {
-            // Mostrar mensaje amigable
-            Toast.makeText(this,
-                "Permiso de ubicación requerido. Ve a Configuración > Aplicaciones > BPM > Permisos para activarlo.",
-                Toast.LENGTH_LONG
-            ).show()
-
-            // Ofrecer abrir configuración
-            showLocationPermissionSettingsDialog()
+            // Mostrar explicación antes de pedir permisos
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                AlertDialog.Builder(this)
+                    .setTitle("Permiso de ubicación necesario")
+                    .setMessage("La aplicación necesita acceso a tu ubicación para mostrarte en el mapa y crear polaroids en tu ubicación actual.")
+                    .setPositiveButton("Aceptar") { _, _ ->
+                        ActivityCompat.requestPermissions(
+                            this,
+                            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                            LOCATION_PERMISSION_REQUEST_CODE
+                        )
+                    }
+                    .setNegativeButton("Cancelar", null)
+                    .show()
+            } else {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    LOCATION_PERMISSION_REQUEST_CODE
+                )
+            }
         }
-    }
-
-    private fun showLocationPermissionSettingsDialog() {
-        androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("Permiso de Ubicación Requerido")
-            .setMessage("Para usar esta función, necesitas conceder permiso de ubicación. ¿Quieres abrir la configuración ahora?")
-            .setPositiveButton("Abrir Configuración") { _, _ ->
-                openAppSettings()
-            }
-            .setNegativeButton("Cancelar") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
-    }
-
-    private fun openAppSettings() {
-        val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        val uri = android.net.Uri.fromParts("package", packageName, null)
-        intent.data = uri
-        startActivity(intent)
     }
 
     override fun onRequestPermissionsResult(
@@ -256,50 +213,24 @@ class MainActivity : AppCompatActivity() {
 
         when (requestCode) {
             LOCATION_PERMISSION_REQUEST_CODE -> {
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permiso concedido
+                // Verificar si se concedió el permiso de ubicación
+                val locationGranted = permissions.indexOfFirst { it == Manifest.permission.ACCESS_FINE_LOCATION }
+                    .takeIf { it >= 0 }
+                    ?.let { grantResults[it] == PackageManager.PERMISSION_GRANTED }
+                    ?: false
+
+                if (locationGranted) {
+                    // Permiso de ubicación concedido
                     Toast.makeText(this, "Permiso de ubicación concedido", Toast.LENGTH_SHORT).show()
-                    centerOnCurrentLocation()
                 } else {
-                    // Permiso denegado
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                            Manifest.permission.ACCESS_FINE_LOCATION)) {
-                        // El usuario denegó pero no marcó "No preguntar again"
-                        showLocationPermissionExplanation()
-                    } else {
-                        // Usuario marcó "No preguntar again" o denegó permanentemente
-                        Toast.makeText(this,
-                            "Permiso de ubicación denegado. Puedes activarlo en Configuración.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+                    // Permiso de ubicación denegado
+                    Toast.makeText(this, "Para usar todas las funciones, activa los permisos de ubicación en Configuración", Toast.LENGTH_LONG).show()
                 }
-            }
 
-            101 -> { // Código para notificaciones
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.d("Notifications", "Permiso de notificaciones concedido")
-                } else {
-                    Log.d("Notifications", "Permiso de notificaciones denegado")
-                    Toast.makeText(this,
-                        "Las notificaciones están desactivadas. No recibirás avisos de nuevas polaroids.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                // Inicializar el resto de la aplicación después de obtener permisos
+                initAfterPermissions()
             }
         }
-    }
-
-    private fun checkForUpdates() {
-        if (isNetworkAvailable()) {
-            UpdateChecker(this).checkForUpdates()
-        }
-    }
-
-    private fun isNetworkAvailable(): Boolean {
-        val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkInfo = connectivityManager.activeNetworkInfo
-        return networkInfo != null && networkInfo.isConnected
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
