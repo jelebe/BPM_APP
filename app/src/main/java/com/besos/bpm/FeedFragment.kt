@@ -34,18 +34,28 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
         // Configurar RecyclerView
         feedRecyclerView = view.findViewById(R.id.feedRecyclerView)
         feedRecyclerView.layoutManager = LinearLayoutManager(context)
-        feedAdapter = FeedAdapter(markerItems) { selectedMarker ->
-            // Navegar al MapFragment y pasar los datos del marcador seleccionado
-            val bundle = Bundle().apply {
-                putDouble("latitude", selectedMarker.latLng?.lat ?: 0.0)
-                putDouble("longitude", selectedMarker.latLng?.lng ?: 0.0)
+
+        // Modificado: Ahora el adaptador tiene dos callbacks
+        feedAdapter = FeedAdapter(
+            markerItems,
+            onMarkerClickListener = { selectedMarker ->
+                // Navegar al MapFragment y pasar los datos del marcador seleccionado
+                val bundle = Bundle().apply {
+                    putDouble("latitude", selectedMarker.latLng?.lat ?: 0.0)
+                    putDouble("longitude", selectedMarker.latLng?.lng ?: 0.0)
+                }
+                val mapFragment = MapFragment().apply { arguments = bundle }
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, mapFragment)
+                    .addToBackStack(null)
+                    .commit()
+            },
+            onFlipClickListener = { markerToFlip, position ->
+                // Girar la polaroid (cambiar entre frente y dorso)
+                markerToFlip.isShowingBack = !markerToFlip.isShowingBack
+                feedAdapter.notifyItemChanged(position)
             }
-            val mapFragment = MapFragment().apply { arguments = bundle }
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, mapFragment)
-                .addToBackStack(null)
-                .commit()
-        }
+        )
         feedRecyclerView.adapter = feedAdapter
 
         // Inicializar Firebase
@@ -69,9 +79,20 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                     val lng = markerSnapshot.child("latlng/lng").getValue(Double::class.java) ?: 0.0
                     val city = markerSnapshot.child("city").getValue(String::class.java)
                     val country = markerSnapshot.child("country").getValue(String::class.java)
+                    // NUEVO: Cargar el texto largo de la parte trasera
+                    val longText = markerSnapshot.child("longText").getValue(String::class.java) ?: ""
 
                     if (imageUrl.isNotEmpty()) {
-                        val markerItem = MarkerItem(imageUrl, description, date, LatLngModel(lat, lng), city, country)
+                        val markerItem = MarkerItem(
+                            imageUrl = imageUrl,
+                            description = description,
+                            date = date,
+                            latLng = LatLngModel(lat, lng),
+                            city = city,
+                            country = country,
+                            longText = longText,
+                            isShowingBack = false // Por defecto mostrar el frente
+                        )
                         markerItems.add(markerItem)
                     }
                 }
@@ -135,10 +156,6 @@ class FeedFragment : Fragment(R.layout.feed_fragment) {
                 showDateRangeFilterDialog()
                 true
             }
-           /* R.id.action_clear_filters -> {
-                clearFilters()
-                true
-            }*/
             else -> super.onOptionsItemSelected(item)
         }
     }
