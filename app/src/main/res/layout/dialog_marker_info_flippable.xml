@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="6dp"
+    app:cardBackgroundColor="@android:color/white"
+    android:clickable="true"
+    android:focusable="true">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/polaroid_back">
+
+        <!-- Cara FRONTAL del diálogo -->
+        <LinearLayout
+            android:id="@+id/frontLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="visible"
+            android:padding="20dp">
+
+            <!-- Marco de la polaroid -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:background="@android:color/white"
+                android:padding="16dp">
+
+                <!-- Imagen cuadrada -->
+                <ImageView
+                    android:id="@+id/marker_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="Imagen de la polaroid" />
+
+                <!-- Sombra interior para efecto polaroid -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/polaroid_inner_shadow" />
+
+            </FrameLayout>
+
+            <!-- Marco inferior de la polaroid -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="16dp"
+                android:background="@android:color/white">
+
+                <!-- Descripción -->
+                <TextView
+                    android:id="@+id/markerDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Descripción"
+                    android:textSize="16sp"
+                    android:textColor="#333333"
+                    android:gravity="center"
+                    android:fontFamily="@font/handlee_regular"
+                    android:maxLines="2"
+                    android:ellipsize="end" />
+
+                <!-- Fecha -->
+                <TextView
+                    android:id="@+id/markerDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Fecha"
+                    android:textSize="14sp"
+                    android:textColor="#666666"
+                    android:gravity="center"
+                    android:fontFamily="@font/handlee_regular"
+                    android:layout_marginTop="8dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Cara TRASERA del diálogo -->
+        <LinearLayout
+            android:id="@+id/backLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/polaroid_back"
+            android:visibility="gone"
+            android:padding="20dp">
+
+            <!-- Área táctil superior para voltear -->
+            <LinearLayout
+                android:id="@+id/backTopTouchArea"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:orientation="horizontal"
+                android:background="@android:color/transparent"
+                android:gravity="start|center_vertical"
+                android:paddingStart="20dp">
+
+                <!-- Indicador visual (flecha) -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="←"
+                    android:textSize="28sp"
+                    android:textColor="#888888" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" "
+                    android:textSize="16sp"
+                    android:textColor="#888888"
+                    android:layout_marginLeft="12dp"
+                    android:fontFamily="@font/handlee_regular"/>
+
+            </LinearLayout>
+
+            <!-- Contenido de la parte trasera -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="320dp"
+                android:orientation="vertical"
+                android:background="@android:color/white"
+                android:padding="24dp"
+                android:gravity="center">
+
+                <!-- Título de la parte trasera -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text=" "
+                    android:textSize="20sp"
+                    android:textColor="#333333"
+                    android:gravity="center"
+                    android:fontFamily="@font/handlee_regular"
+                    android:layout_marginBottom="20dp" />
+
+                <!-- Texto largo (scrollable) -->
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/markerLongText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="15sp"
+                        android:textColor="#444444"
+                        android:lineSpacingExtra="6dp"
+                        android:gravity="start"
+                        android:fontFamily="@font/handlee_regular" />
+
+                </ScrollView>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</androidx.cardview.widget.CardView>

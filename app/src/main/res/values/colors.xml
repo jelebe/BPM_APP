@@ -26,5 +26,10 @@
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
 
+    <!-- Colores para la polaroid giratoria -->
+    <color name="polaroid_frame">#FFF5F5F5</color>
+    <color name="polaroid_back">#FFF9F9F9</color>
+    <color name="polaroid_accent">#FFE8C4C8</color>
+
 
 </resources>

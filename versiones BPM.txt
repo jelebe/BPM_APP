@@ -46,13 +46,13 @@ HECHO 1.7.1 Notificaciones push:  Implementa notificaciones para informar a los 
 HECHO 1.7.1.1 Fix toolbar y ubicación.
 
 
-1.8.1 Glide optimizado:  Configura Glide para usar caché de imágenes y evitar descargar imágenes repetidamente.
+HECHO 1.8.1 Polariods reversibles. añadir texto detrás del Polariod
 
 
-1.8.2 Modo offline:  Guarda los marcadores localmente para que los usuarios puedan verlos sin conexión.
+1.9.1 Glide optimizado:  Configura Glide para usar caché de imágenes y evitar descargar imágenes repetidamente.
 
 
-1.9.1 Polariods reversibles. añadir texto detrás del Polariod
+1.9.2 Modo offline:  Guarda los marcadores localmente para que los usuarios puedan verlos sin conexión.
 
 
 1.10.1 Edición/eliminación de marcadores:  Permite a los usuarios editar o eliminar sus propios marcadores después de crearlos.

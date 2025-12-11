@@ -23,6 +23,6 @@
         android:layout_margin="16dp"
         app:srcCompat="@drawable/ic_marker_icon_add"
         app:maxImageSize="45dp"
-        app:backgroundTint="@color/pink_light"
-        />
+        app:backgroundTint="@color/pink_dark"
+    />
 </RelativeLayout>
