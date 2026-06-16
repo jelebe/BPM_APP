@@ -1,8 +1,10 @@
 package com.besos.bpm
 
+import android.Manifest
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.ProgressDialog
+import android.content.pm.PackageManager
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -20,12 +22,14 @@ import android.view.animation.RotateAnimation
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.google.android.gms.location.LocationServices
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
@@ -190,10 +194,11 @@ class MapFragment : Fragment(R.layout.map_fragment) {
         mapView.setTilesScaledToDpi(false)
         configureMapLimits()
 
-        // Centrar el mapa en Madrid por defecto
+        // Centrar en Madrid como fallback, luego intentar ubicación real
         val madridGeoPoint = GeoPoint(40.4168, -3.7038)
         mapView.controller.setCenter(madridGeoPoint)
         mapView.controller.setZoom(14.0)
+        centerOnUserLocationIfAvailable()
 
         // Inicializar Firebase
         databaseReference = FirebaseDatabase.getInstance().reference.child("markers")
@@ -232,6 +237,21 @@ class MapFragment : Fragment(R.layout.map_fragment) {
                 highlightMarkerOnMap(latitude, longitude)
             }
         }
+    }
+
+    private fun centerOnUserLocationIfAvailable() {
+        val ctx = context ?: return
+        if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) return
+
+        LocationServices.getFusedLocationProviderClient(ctx)
+            .lastLocation
+            .addOnSuccessListener { location ->
+                if (location != null) {
+                    val userPoint = GeoPoint(location.latitude, location.longitude)
+                    mapView.controller.animateTo(userPoint, 14.0, 800L)
+                }
+            }
     }
 
     private fun configureMapLimits() {
